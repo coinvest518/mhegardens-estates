@@ -20,8 +20,8 @@ const NVIDIA = { name: "nvidia", url: "https://integrate.api.nvidia.com/v1/chat/
 
 /**
  * OpenAI-compatible chat models, tried in order until one starts answering. Each provider needs its key in Vercel.
- * Stronger models first; the small ministral model is the last resort. Rate limits and retirements are per model,
- * so a failure just moves on to the next one. MISTRAL_CHAT_MODEL / NVIDIA_CHAT_MODEL put a model at the front.
+ * Stronger models first. Rate limits, plan limits (403) and retirements are per model, so a failure just moves on
+ * to the next one; only a rejected key (401) skips the rest of that provider. NVIDIA is slower to start, so it's last. MISTRAL_CHAT_MODEL / NVIDIA_CHAT_MODEL put a model at the front.
  */
 const MODELS = () =>
   [
@@ -29,11 +29,10 @@ const MODELS = () =>
     { ...NVIDIA, model: process.env.NVIDIA_CHAT_MODEL },
     { ...MISTRAL, model: "mistral-small-latest" },
     { ...MISTRAL, model: "mistral-medium-latest" },
-    { ...MISTRAL, model: "mistral-large-latest" },
-    { ...NVIDIA, model: "deepseek-ai/deepseek-v4.1-flash" },
-    { ...NVIDIA, model: "google/gemma-3-12b-it" },
     { ...MISTRAL, model: "open-mistral-nemo" },
     { ...MISTRAL, model: "ministral-8b-latest" },
+    { ...NVIDIA, model: "deepseek-ai/deepseek-v4.1-flash" },
+    { ...NVIDIA, model: "nvidia/nemotron-3.5-lightning-30b-a3b" },
   ].filter((m): m is typeof m & { model: string } => !!m.model)
 
 /** Cut an answer that starts repeating the same short phrase over and over. */
@@ -106,8 +105,8 @@ export async function POST(req: Request) {
         break
       }
       console.error("[chat] model failed", { provider: p.name, model, status: res.status, body: (await res.text()).slice(0, 300) })
-      // A bad or missing key fails every model on that provider the same way.
-      if (res.status === 401 || res.status === 403) deadBadKey.add(p.name)
+      // A rejected key fails every model on that provider the same way. (403 here is usually "not on your plan" — per model.)
+      if (res.status === 401) deadBadKey.add(p.name)
     } catch (err) {
       clearTimeout(timer)
       console.error("[chat] model " + (ctrl.signal.aborted ? "timed out" : "threw"), { provider: p.name, model, err: String(err) })
