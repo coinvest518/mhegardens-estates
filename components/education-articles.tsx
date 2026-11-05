@@ -36,12 +36,11 @@ export function EducationArticles() {
   return (
     <>
       <div className="grid md:grid-cols-2 gap-6">
-        {GUIDES.map((guide, i) => (
+        {GUIDES.map((guide) => (
           <Card
             key={guide.id}
             id={guide.id}
-            className="border-border bg-card hover-lift reveal flex flex-col scroll-mt-24"
-            style={{ "--reveal-delay": `${i * 110}ms` } as React.CSSProperties}
+            className="border-border bg-card flex flex-col scroll-mt-24"
           >
             <CardHeader className="space-y-3">
               <div className="flex items-center justify-between gap-3">
@@ -49,8 +48,8 @@ export function EducationArticles() {
                   <BookOpen className="h-5 w-5 text-primary" />
                 </div>
                 <span
-                  className={`text-[11px] font-semibold uppercase tracking-wider rounded-full px-2.5 py-1 ${
-                    guide.gated ? "bg-accent/10 text-accent" : "bg-primary/10 text-primary"
+                  className={`text-xs font-semibold rounded-full px-2.5 py-1 ${
+                    guide.gated ? "bg-mist text-slate border border-border" : "bg-leaf text-white"
                   }`}
                 >
                   {guide.gated ? `In the $${BUNDLE.priceUSD} bundle` : "Free"}
@@ -62,7 +61,7 @@ export function EducationArticles() {
             <CardContent className="flex flex-col gap-4 flex-1">
               <p className="text-sm text-muted-foreground text-pretty line-clamp-4">{guide.summary}</p>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-accent mb-2">You&apos;ll learn</p>
+                <p className="text-sm font-semibold text-pine mb-2">You&apos;ll learn</p>
                 <ul className="space-y-1.5">
                   {guide.takeaways.map((t) => (
                     <li key={t} className="flex gap-2 text-sm text-muted-foreground">

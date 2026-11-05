@@ -1,5 +1,6 @@
 import { Navigation } from "@/components/navigation"
 import { HeroSection } from "@/components/hero-section"
+import { AskAI } from "@/components/ask-ai"
 import { WaysToBuy } from "@/components/ways-to-buy"
 import { HowItWorksSteps } from "@/components/how-it-works-steps"
 import { WhoWeHelp } from "@/components/who-we-help"
@@ -13,8 +14,9 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="relative">
+      <main>
         <HeroSection />
+        <AskAI />
         <WaysToBuy />
         <HowItWorksSteps />
         <WhoWeHelp />

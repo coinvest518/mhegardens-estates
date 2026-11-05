@@ -3,81 +3,68 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * MHE Gardens palette
+ *   Pine       #183D33  deep Adirondack pine — hero, dark bands, headings
+ *   Leaf       #1F5C47  buttons and links on light backgrounds
+ *   Goldenrod  #EDBA2F  New York's state flower — primary CTA on dark, parcel highlights
+ *   Paper      #FAFBF9  page background (crisp, not cream)
+ *   Mist       #EAF1ED  alternate sections, quiet fills
+ *   Ink        #17201D  body text
+ *   Slate      #52635C  secondary text
+ */
 :root {
-  /* CommunityAcre garden palette */
-  --background: oklch(0.98 0.01 95);
-  --foreground: oklch(0.28 0.04 145);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.28 0.04 145);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.28 0.04 145);
-  --primary: oklch(0.48 0.13 145);
-  --primary-foreground: oklch(0.99 0.01 95);
-  --secondary: oklch(0.32 0.06 145);
-  --secondary-foreground: oklch(0.98 0.01 95);
-  --muted: oklch(0.95 0.02 95);
-  --muted-foreground: oklch(0.45 0.04 145);
-  --accent: oklch(0.62 0.15 45);
-  --accent-foreground: oklch(0.99 0.01 95);
-  --destructive: oklch(0.55 0.22 25);
-  --destructive-foreground: oklch(0.99 0.01 95);
-  --border: oklch(0.88 0.02 95);
-  --input: oklch(0.84 0.02 95);
-  --ring: oklch(0.48 0.13 145 / 0.35);
-  --chart-1: oklch(0.48 0.13 145);
-  --chart-2: oklch(0.62 0.15 45);
-  --chart-3: oklch(0.70 0.10 85);
-  --chart-4: oklch(0.55 0.08 200);
-  --chart-5: oklch(0.40 0.10 145);
-  --radius: 0.625rem;
-  --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.28 0.04 145);
-  --sidebar-primary: oklch(0.48 0.13 145);
-  --sidebar-primary-foreground: oklch(0.99 0.01 95);
-  --sidebar-accent: oklch(0.62 0.15 45);
-  --sidebar-accent-foreground: oklch(0.99 0.01 95);
-  --sidebar-border: oklch(0.88 0.02 95);
-  --sidebar-ring: oklch(0.48 0.13 145 / 0.35);
-}
+  --pine: #183d33;
+  --pine-deep: #10302a;
+  --leaf: #1f5c47;
+  --goldenrod: #edba2f;
+  --goldenrod-deep: #c9971a;
+  --paper: #fafbf9;
+  --mist: #eaf1ed;
+  --ink: #17201d;
+  --slate: #52635c;
 
-.dark {
-  --background: oklch(0.18 0.03 145);
-  --foreground: oklch(0.95 0.02 95);
-  --card: oklch(0.22 0.03 145);
-  --card-foreground: oklch(0.95 0.02 95);
-  --popover: oklch(0.22 0.03 145);
-  --popover-foreground: oklch(0.95 0.02 95);
-  --primary: oklch(0.62 0.15 145);
-  --primary-foreground: oklch(0.18 0.03 145);
-  --secondary: oklch(0.28 0.05 145);
-  --secondary-foreground: oklch(0.95 0.02 95);
-  --muted: oklch(0.25 0.03 145);
-  --muted-foreground: oklch(0.72 0.03 95);
-  --accent: oklch(0.72 0.15 45);
-  --accent-foreground: oklch(0.18 0.03 145);
-  --destructive: oklch(0.65 0.22 25);
-  --destructive-foreground: oklch(0.95 0.02 95);
-  --border: oklch(0.30 0.03 145);
-  --input: oklch(0.25 0.03 145);
-  --ring: oklch(0.62 0.15 145 / 0.4);
-  --chart-1: oklch(0.62 0.15 145);
-  --chart-2: oklch(0.72 0.15 45);
-  --chart-3: oklch(0.78 0.10 85);
-  --chart-4: oklch(0.65 0.10 200);
-  --chart-5: oklch(0.50 0.13 145);
-  --sidebar: oklch(0.16 0.03 145);
-  --sidebar-foreground: oklch(0.95 0.02 95);
-  --sidebar-primary: oklch(0.62 0.15 145);
-  --sidebar-primary-foreground: oklch(0.16 0.03 145);
-  --sidebar-accent: oklch(0.72 0.15 45);
-  --sidebar-accent-foreground: oklch(0.16 0.03 145);
-  --sidebar-border: oklch(0.30 0.03 145);
-  --sidebar-ring: oklch(0.62 0.15 145 / 0.4);
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: #ffffff;
+  --card-foreground: var(--ink);
+  --popover: #ffffff;
+  --popover-foreground: var(--ink);
+  --primary: var(--leaf);
+  --primary-foreground: #ffffff;
+  --secondary: var(--pine);
+  --secondary-foreground: #f2f6f4;
+  --muted: var(--mist);
+  --muted-foreground: var(--slate);
+  --accent: var(--goldenrod);
+  --accent-foreground: var(--ink);
+  --destructive: #b42318;
+  --destructive-foreground: #ffffff;
+  --border: #d9e3dd;
+  --input: #c3d1ca;
+  --ring: rgba(31, 92, 71, 0.4);
+  --chart-1: var(--leaf);
+  --chart-2: var(--goldenrod);
+  --chart-3: #7a9a8c;
+  --chart-4: #2b5c8a;
+  --chart-5: var(--pine);
+  --radius: 0.75rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--leaf);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--goldenrod);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: #d9e3dd;
+  --sidebar-ring: rgba(31, 92, 71, 0.4);
+
+  --font-body: "Public Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-head: "Bricolage Grotesque Variable", "Public Sans Variable", ui-sans-serif, system-ui, sans-serif;
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-head);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -102,6 +89,14 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-pine: var(--pine);
+  --color-pine-deep: var(--pine-deep);
+  --color-leaf: var(--leaf);
+  --color-goldenrod: var(--goldenrod);
+  --color-goldenrod-deep: var(--goldenrod-deep);
+  --color-mist: var(--mist);
+  --color-ink: var(--ink);
+  --color-slate: var(--slate);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -120,132 +115,94 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--font-head);
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+    font-optical-sizing: auto;
+  }
+  :focus-visible {
+    outline: 3px solid var(--goldenrod);
+    outline-offset: 2px;
   }
 }
 
-/* Custom animations */
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px);
+/* The one moment of motion: the highlighted parcels on the hero map draw themselves in. */
+@keyframes parcel-draw {
+  from {
+    stroke-dashoffset: var(--len, 600);
+    fill-opacity: 0;
   }
-  50% {
-    transform: translateY(-10px);
+  70% {
+    stroke-dashoffset: 0;
+    fill-opacity: 0;
+  }
+  to {
+    stroke-dashoffset: 0;
+    fill-opacity: 1;
   }
 }
-
-@keyframes fadeInUp {
+@keyframes tag-in {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
-
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.parcel-draw {
+  stroke-dasharray: var(--len, 600);
+  animation: parcel-draw 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.parcel-tag {
+  animation: tag-in 0.5s ease-out both;
 }
 
-@keyframes pulse-soft {
+/* Typing indicator for the AI chat */
+@keyframes chat-dot {
   0%,
+  80%,
   100% {
+    opacity: 0.25;
+  }
+  40% {
     opacity: 1;
   }
-  50% {
-    opacity: 0.8;
+}
+.chat-dot {
+  animation: chat-dot 1.2s infinite ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .parcel-draw,
+  .parcel-tag,
+  .chat-dot {
+    animation: none !important;
+    stroke-dasharray: none;
   }
 }
 
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.8s ease-out forwards;
-}
-
-.animate-slide-in-left {
-  animation: slideInLeft 0.8s ease-out forwards;
-}
-
-.animate-pulse-soft {
-  animation: pulse-soft 3s ease-in-out infinite;
-}
-
-.hover-lift {
-  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.hover-lift:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
-}
-
-/* ─── Smooth scroll ─────────────────────────────────── */
-html {
-  scroll-behavior: smooth;
-}
-
-/* ─── Scroll-reveal ─────────────────────────────────── */
-.reveal {
-  opacity: 0;
-  transform: translateY(24px);
-  transition:
-    opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
-  transition-delay: var(--reveal-delay, 0ms);
-}
-
-.reveal.revealed {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.reveal-stagger > * {
-  opacity: 0;
-  transform: translateY(20px);
-  transition:
-    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.reveal-stagger.revealed > *:nth-child(1) { opacity: 1; transform: none; transition-delay: 0ms; }
-.reveal-stagger.revealed > *:nth-child(2) { opacity: 1; transform: none; transition-delay: 110ms; }
-.reveal-stagger.revealed > *:nth-child(3) { opacity: 1; transform: none; transition-delay: 220ms; }
-.reveal-stagger.revealed > *:nth-child(4) { opacity: 1; transform: none; transition-delay: 330ms; }
-.reveal-stagger.revealed > *:nth-child(n+5) { opacity: 1; transform: none; transition-delay: 440ms; }
-
-/* ─── Hero entrance (fires immediately, not scroll-triggered) */
-@keyframes heroEnter {
-  from { opacity: 0; transform: translateY(18px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.hero-enter {
-  animation: heroEnter 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-/* ─── Deal card glow on hover ───────────────────────── */
-.deal-card-glow {
-  transition:
-    box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.deal-card-glow:hover {
-  box-shadow: 0 0 0 2px var(--color-primary), 0 16px 40px rgba(0, 0, 0, 0.10);
-  transform: translateY(-4px);
+/* Room for the mobile action bar so it never covers the footer */
+@media (max-width: 1023px) {
+  body {
+    padding-bottom: 76px;
+  }
 }

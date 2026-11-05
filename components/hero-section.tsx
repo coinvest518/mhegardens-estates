@@ -1,108 +1,68 @@
 import Link from "next/link"
-import { ArrowRight, CalendarCheck, Gavel } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { SITE, consultHref } from "@/lib/site"
+import { Home, MapPin, MessageCircle, Tag, TrendingUp } from "lucide-react"
+import { PlatMap } from "@/components/plat-map"
+import { SITE } from "@/lib/site"
 
-const QUICK_FACTS = [
-  { label: "Buyers, sellers & investors", detail: "One team, every path" },
-  { label: "Free 30-minute call", detail: "No cost, no pressure" },
-  { label: "Credit help", detail: "If you're not ready yet" },
-  { label: SITE.region, detail: "Albany & the Capital Region" },
+const ROLES = [
+  { href: "/#consult-buyer", icon: Home, label: "I want to buy", hint: "A home or land" },
+  { href: "/#consult-seller", icon: Tag, label: "I want to sell", hint: "A house or a lot" },
+  { href: "/#consult-investor", icon: TrendingUp, label: "I want to invest", hint: "Auctions, flips, rentals" },
 ]
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-secondary via-secondary to-primary/40 text-white">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/15 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-80 h-80 bg-accent/15 rounded-full blur-3xl" />
-      </div>
-
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-16 lg:pb-24">
-        <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-          <div className="lg:col-span-7">
-            <p
-              className="mb-5 text-xs font-semibold tracking-widest uppercase text-accent hero-enter"
-              style={{ animationDelay: "80ms" }}
-            >
-              Land &amp; homes · {SITE.region}
+    <section className="relative overflow-hidden bg-pine text-[#eef4f0]">
+      <div className="relative max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-14 lg:pb-20">
+        <div className="grid lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+          <div className="lg:col-span-6">
+            <p className="flex items-center gap-2 text-sm text-[#cfe0d7] mb-5">
+              <MapPin className="h-4 w-4 text-goldenrod" aria-hidden />
+              Albany and the Capital Region, {SITE.region}
             </p>
 
-            <h1
-              className="text-4xl sm:text-5xl lg:text-[3.5rem] font-bold leading-[1.05] mb-5 text-balance hero-enter"
-              style={{ animationDelay: "200ms" }}
-            >
-              Own land or a home.
-              <br />
-              <span className="text-accent">We&apos;ll show you the way&nbsp;in.</span>
+            <h1 className="text-[2.6rem] leading-[1.02] sm:text-6xl lg:text-[4.1rem] font-bold text-white text-balance">
+              Own land or a home in Upstate New York.
             </h1>
 
-            <p
-              className="text-lg text-white/80 mb-8 text-pretty max-w-xl hero-enter"
-              style={{ animationDelay: "320ms" }}
-            >
-              Buy with a mortgage, a first-time buyer program, or the less-known way — county tax
-              auctions and land bank properties. Selling or investing? We help with that too.
+            <p className="mt-5 text-lg text-[#cfe0d7] max-w-xl text-pretty">
+              With a mortgage, a first-time buyer program, a county tax auction or the land bank — we help you find
+              the way that fits your money and your credit. Free to start.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 hero-enter" style={{ animationDelay: "440ms" }}>
-              <Button
-                asChild
-                size="lg"
-                className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold px-8 hover-lift"
+            <div className="mt-8">
+              <p className="font-display text-xl font-semibold text-white mb-3">What brings you here?</p>
+              <div className="grid gap-2.5 sm:grid-cols-3">
+                {ROLES.map(({ href, icon: Icon, label, hint }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className="group flex sm:flex-col items-center sm:items-start gap-3 sm:gap-2 rounded-xl bg-white/[0.07] border border-white/15 px-4 py-3.5 sm:py-4 transition-colors hover:bg-goldenrod hover:border-goldenrod hover:text-ink"
+                  >
+                    <Icon className="h-5 w-5 text-goldenrod group-hover:text-ink flex-shrink-0" aria-hidden />
+                    <span>
+                      <span className="block font-semibold text-white group-hover:text-ink">{label}</span>
+                      <span className="block text-sm text-[#b9cdc3] group-hover:text-ink/80">{hint}</span>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+              <Link
+                href="/#ask"
+                className="mt-4 inline-flex items-center gap-2 text-[#cfe0d7] underline decoration-goldenrod/60 underline-offset-4 hover:text-white"
               >
-                <Link href={consultHref()}>
-                  <CalendarCheck className="mr-2 h-5 w-5" />
-                  Book a free consultation
-                </Link>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                className="bg-white/10 hover:bg-white/20 text-white border border-white/30 backdrop-blur-sm px-8 hover-lift"
-              >
-                <Link href="/#ways">
-                  See ways to buy
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-            </div>
-
-            <div
-              className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-5 border-t border-white/15 pt-8 hero-enter"
-              style={{ animationDelay: "560ms" }}
-            >
-              {QUICK_FACTS.map(({ label, detail }) => (
-                <div key={label}>
-                  <div className="text-sm font-bold text-accent leading-snug">{label}</div>
-                  <div className="text-xs text-white/65 mt-1">{detail}</div>
-                </div>
-              ))}
+                <MessageCircle className="h-4 w-4 text-goldenrod" aria-hidden />
+                Not sure yet? Ask a question first
+              </Link>
             </div>
           </div>
 
-          <div className="lg:col-span-5 hero-enter" style={{ animationDelay: "300ms" }}>
-            <div className="relative mx-2 sm:mx-6 lg:mx-0">
-              <div className="absolute -inset-3 bg-gradient-to-br from-accent/30 to-primary/30 rounded-3xl blur-xl" />
-              <div className="relative rounded-2xl overflow-hidden border border-white/20 shadow-2xl aspect-[4/5] sm:aspect-[4/3] lg:aspect-[4/5]">
-                <img
-                  src="/images/hero-home-on-land.webp"
-                  alt="A small home on a wooded lot"
-                  width={880}
-                  height={880}
-                  className="w-full h-full object-cover"
-                  fetchPriority="high"
-                />
-              </div>
-              <div className="absolute -bottom-5 left-4 sm:-left-5 bg-background text-foreground border border-border rounded-xl shadow-xl p-3 flex items-center gap-2.5 max-w-[240px]">
-                <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
-                  <Gavel className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold leading-tight">Auctions &amp; land bank</div>
-                  <div className="text-[11px] text-muted-foreground">Ways in most people never hear about</div>
-                </div>
-              </div>
+          <div className="lg:col-span-6">
+            <div className="rounded-2xl border border-white/12 bg-pine-deep/60 p-3 sm:p-5">
+              <PlatMap className="w-full h-auto" />
+              <p className="mt-3 px-1 text-sm text-[#b9cdc3]">
+                Three ways to get a lot like these: apply to the land bank, bid at a county auction, or buy one that&apos;s
+                listed — with or without a mortgage.
+              </p>
             </div>
           </div>
         </div>

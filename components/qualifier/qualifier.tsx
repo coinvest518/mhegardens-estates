@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { ArrowLeft, ArrowRight, CalendarCheck, Check, ExternalLink, Gavel, Loader2, Phone, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -19,6 +19,7 @@ import {
   type Role,
 } from "@/lib/qualifier"
 import { SITE } from "@/lib/site"
+import { useAuth } from "@/components/auth-provider"
 
 type ContactState = { name: string; phone: string; email: string; consent: boolean; website: string }
 type ContactErrors = Partial<Record<"name" | "phone" | "email" | "consent", string>>
@@ -213,12 +214,24 @@ function OutcomeView({ outcome, firstName, onNavigate }: { outcome: Outcome; fir
   )
 }
 
-export function Qualifier({ onNavigate }: { onNavigate?: () => void }) {
-  const [role, setRole] = useState<Role | null>(null)
+export function Qualifier({ onNavigate, initialRole = null }: { onNavigate?: () => void; initialRole?: Role | null }) {
+  const [role, setRole] = useState<Role | null>(initialRole)
   const [answers, setAnswers] = useState<Answers>({})
-  const [step, setStep] = useState(0) // 0 = role, 1..n = questions, n+1 = contact
+  const [step, setStep] = useState(initialRole ? 1 : 0) // 0 = role, 1..n = questions, n+1 = contact
   const [contact, setContact] = useState<ContactState>({ name: "", phone: "", email: "", consent: false, website: "" })
+  const { user } = useAuth()
+
+  // Signed-in visitors don't have to retype their name and email.
+  useEffect(() => {
+    if (!user) return
+    setContact((c) => ({
+      ...c,
+      name: c.name || user.displayName || "",
+      email: c.email || user.email || "",
+    }))
+  }, [user])
   const [errors, setErrors] = useState<ContactErrors>({})
+  const fix = (k: keyof ContactErrors) => setErrors((e) => (e[k] ? { ...e, [k]: undefined } : e))
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [outcome, setOutcome] = useState<Outcome | null>(null)
@@ -334,22 +347,22 @@ export function Qualifier({ onNavigate }: { onNavigate?: () => void }) {
           />
           <div className="space-y-1.5">
             <Label htmlFor="q-name">Name</Label>
-            <Input id="q-name" autoComplete="name" value={contact.name} onChange={(e) => setContact((c) => ({ ...c, name: e.target.value }))} aria-invalid={!!errors.name} />
+            <Input id="q-name" autoComplete="name" value={contact.name} onChange={(e) => { setContact((c) => ({ ...c, name: e.target.value })); fix("name") }} aria-invalid={!!errors.name} />
             {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="q-phone">Phone</Label>
-            <Input id="q-phone" type="tel" autoComplete="tel" placeholder="(518) 555-0123" value={contact.phone} onChange={(e) => setContact((c) => ({ ...c, phone: e.target.value }))} aria-invalid={!!errors.phone} />
+            <Input id="q-phone" type="tel" autoComplete="tel" placeholder="(518) 555-0123" value={contact.phone} onChange={(e) => { setContact((c) => ({ ...c, phone: e.target.value })); fix("phone") }} aria-invalid={!!errors.phone} />
             {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="q-email">Email</Label>
-            <Input id="q-email" type="email" autoComplete="email" placeholder="you@example.com" value={contact.email} onChange={(e) => setContact((c) => ({ ...c, email: e.target.value }))} aria-invalid={!!errors.email} />
+            <Input id="q-email" type="email" autoComplete="email" placeholder="you@example.com" value={contact.email} onChange={(e) => { setContact((c) => ({ ...c, email: e.target.value })); fix("email") }} aria-invalid={!!errors.email} />
             {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
           </div>
           <div className="space-y-1.5">
             <div className="flex items-start gap-3">
-              <Checkbox id="q-consent" checked={contact.consent} onCheckedChange={(v) => setContact((c) => ({ ...c, consent: v === true }))} className="mt-0.5" />
+              <Checkbox id="q-consent" checked={contact.consent} onCheckedChange={(v) => { setContact((c) => ({ ...c, consent: v === true })); fix("consent") }} className="mt-0.5" />
               <Label htmlFor="q-consent" className="text-sm font-normal text-muted-foreground leading-snug">
                 I agree to be contacted by {SITE.name} and its partner agent, {SITE.agent.name} of {SITE.agent.company}, by phone,
                 text or email about my request.

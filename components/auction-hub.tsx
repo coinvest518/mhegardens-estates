@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { AuctionEvent } from "@/lib/auctions"
-import { SITE, consultHref } from "@/lib/site"
+import { SITE } from "@/lib/site"
 
 const BASICS = [
   {
@@ -37,8 +37,7 @@ export function AuctionHub({ upcoming }: { upcoming: AuctionEvent[] }) {
     <section className="pt-28 pb-24 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-14">
-          <p className="text-sm font-semibold uppercase tracking-widest text-accent mb-3">Tax auctions</p>
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-5 text-balance">
+          <h1 className="text-4xl md:text-5xl font-bold text-pine mb-5 text-balance">
             County tax auctions in Upstate New York
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty">
@@ -50,7 +49,7 @@ export function AuctionHub({ upcoming }: { upcoming: AuctionEvent[] }) {
         {/* Upcoming auctions */}
         <div className="mb-16">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
-            <h2 className="text-2xl font-bold text-foreground">Upcoming auctions</h2>
+            <h2 className="text-2xl font-bold text-pine">Upcoming auctions</h2>
             <a
               href={SITE.auctionsInternationalUrl}
               target="_blank"
@@ -71,7 +70,7 @@ export function AuctionHub({ upcoming }: { upcoming: AuctionEvent[] }) {
                   when the next ones open — and help you get registered in time.
                 </p>
                 <Button asChild>
-                  <Link href={consultHref()}>Book a free consultation</Link>
+                  <Link href="/#contact-auction">Tell me when the next ones open</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -82,7 +81,7 @@ export function AuctionHub({ upcoming }: { upcoming: AuctionEvent[] }) {
                   <CardHeader className="pb-3">
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                       <div>
-                        <p className="text-xs uppercase tracking-[0.2em] text-accent">{event.county}</p>
+                        <p className="text-sm font-semibold text-leaf">{event.county}</p>
                         <CardTitle className="text-xl mt-1.5">{event.title}</CardTitle>
                       </div>
                       <Badge className="bg-primary/10 text-primary border border-primary/20 self-start">{event.eventType}</Badge>
@@ -167,7 +166,7 @@ export function AuctionHub({ upcoming }: { upcoming: AuctionEvent[] }) {
                 Want someone to walk you through it? We help with registration, research and bidding plans.
               </p>
               <Button asChild className="w-full">
-                <Link href={consultHref()}>
+                <Link href="/#contact-auction">
                   <Gavel className="mr-2 h-4 w-4" /> Get help with an auction
                 </Link>
               </Button>

@@ -1,101 +1,149 @@
 import Link from "next/link"
-import { ArrowRight, Building2, Gavel, Hammer, Home, PiggyBank } from "lucide-react"
-import { consultHref } from "@/lib/site"
+import { AskButton } from "@/components/ask-button"
 
-const WAYS = [
+type Action = { kind: "link"; href: string; label: string } | { kind: "ask"; question: string; label: string }
+
+const WAYS: { name: string; what: string; credit: string; money: string; speed: string; action: Action }[] = [
   {
-    icon: Home,
-    title: "Buy with a mortgage",
-    body:
-      "The regular way. Conventional loans usually want a credit score around 680 or higher. FHA and first-time buyer programs can start lower — around 580 — with a bigger down payment.",
-    tag: "Most common",
+    name: "Mortgage",
+    what: "Buy a listed home or lot through a lender, with our partner agent.",
+    credit: "About 680+ for conventional loans. FHA and first-time programs can start near 580.",
+    money: "A down payment — FHA can be 3.5% with 580+. Less score usually means more down.",
+    speed: "About 1–2 months from offer to keys.",
+    action: { kind: "link", href: "/#consult-buyer", label: "Check if I qualify" },
   },
   {
-    icon: PiggyBank,
-    title: "Down payment matching",
-    body:
-      "Programs that match the money you save, so your down payment or deposit grows faster. We help you find the ones you qualify for.",
-    tag: "First-time buyers",
+    name: "Down payment matching",
+    what: "Programs that add money to what you save, so you reach your down payment sooner.",
+    credit: "Depends on the program. Many are for first-time buyers.",
+    money: "Your savings, matched. Income limits often apply.",
+    speed: "You save over months, then buy with a mortgage.",
+    action: { kind: "ask", question: "What down payment matching programs can help first-time buyers in the Albany area?", label: "Ask about matching programs" },
   },
   {
-    icon: Gavel,
-    title: "County tax auctions",
-    body:
-      "Counties sell tax-foreclosed land and houses at public auctions, mostly online. No credit check and no license — you need a bidder account and the money ready.",
-    tag: "No credit check",
+    name: "County tax auction",
+    what: "Counties sell tax-foreclosed land and houses online, mostly spring through fall.",
+    credit: "No credit check.",
+    money: "Cash. A deposit when you win, then the full price soon after.",
+    speed: "Set auction dates. Register a few days before bidding closes.",
+    action: { kind: "link", href: "/auctions", label: "See upcoming auctions" },
   },
   {
-    icon: Building2,
-    title: "Land bank properties",
-    body:
-      "Land banks sell vacant lots and houses through an application instead of a bidding war. Prices can be low, and you show a plan for the property.",
-    tag: "Low prices",
+    name: "Land bank",
+    what: "A nonprofit sells vacant lots and houses to buyers who apply with a plan.",
+    credit: "They review your application, your plan and proof of funds — not a bidding war.",
+    money: "Often low prices, plus money to fix the property up.",
+    speed: "Weeks to a few months for approval.",
+    action: { kind: "ask", question: "How do I buy a property from the Albany County Land Bank?", label: "Ask how the land bank works" },
   },
   {
-    icon: Hammer,
-    title: "Fix and flip",
-    body:
-      "Buy a property that needs work, fix it up, then sell or rent it. We help you run the numbers before you buy.",
-    tag: "Investors",
+    name: "Fix and flip",
+    what: "Buy a property that needs work, fix it, then sell or rent it.",
+    credit: "Cash or a private / hard-money lender.",
+    money: "Purchase plus repairs. We run the numbers with you first.",
+    speed: "Depends on the repairs.",
+    action: { kind: "link", href: "/#consult-investor", label: "Talk about a flip" },
   },
 ]
 
+function WayAction({ action, className }: { action: Action; className: string }) {
+  return action.kind === "link" ? (
+    <Link href={action.href} className={className}>
+      {action.label}
+    </Link>
+  ) : (
+    <AskButton question={action.question} className={className}>
+      {action.label}
+    </AskButton>
+  )
+}
+
 export function WaysToBuy() {
   return (
-    <section id="ways" className="py-20 px-4 sm:px-6 lg:px-8 scroll-mt-20">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12 reveal">
-          <p className="text-sm font-semibold uppercase tracking-widest text-accent mb-3">Ways to buy</p>
-          <h2 className="text-4xl font-bold text-foreground mb-4 text-balance">There&apos;s more than one way in</h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-pretty">
-            Most people only hear about mortgages. Here are all the paths we help with — on the call,
-            we figure out which one fits you.
+    <section id="ways" className="py-16 sm:py-20 px-5 sm:px-6 lg:px-8 scroll-mt-20">
+      <div className="max-w-6xl mx-auto">
+        <div className="max-w-2xl mb-10">
+          <h2 className="text-3xl sm:text-4xl font-bold text-pine text-balance">Five ways to buy, side by side</h2>
+          <p className="mt-3 text-lg text-slate text-pretty">
+            Most people only hear about mortgages. Here&apos;s what each way asks of your credit and your wallet.
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 reveal-stagger">
-          {WAYS.map(({ icon: Icon, title, body, tag }) => (
-            <div
-              key={title}
-              className="flex flex-col rounded-2xl border border-border bg-card p-6 hover-lift"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-2.5 bg-primary/10 rounded-xl">
-                  <Icon className="h-5 w-5 text-primary" />
-                </div>
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-accent">{tag}</span>
-              </div>
-              <h3 className="text-lg font-bold text-foreground mb-2">{title}</h3>
-              <p className="text-sm text-muted-foreground text-pretty leading-relaxed flex-1">{body}</p>
-              <Link
-                href={consultHref()}
-                className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary/80"
-              >
-                Ask about this <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          ))}
-
-          <div className="flex flex-col justify-between rounded-2xl bg-secondary text-secondary-foreground p-6">
-            <div>
-              <h3 className="text-lg font-bold mb-2">Not sure which fits?</h3>
-              <p className="text-sm text-secondary-foreground/80 text-pretty">
-                That&apos;s what the free call is for. Tell us your goal, your savings and your credit
-                range — we&apos;ll lay out your options.
-              </p>
-            </div>
-            <Link
-              href={consultHref()}
-              className="mt-5 inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-sm font-bold text-accent-foreground hover:bg-accent/90"
-            >
-              Book a free consultation
-            </Link>
-          </div>
+        {/* Desktop: comparison table */}
+        <div className="hidden md:block overflow-hidden rounded-2xl border border-border bg-card">
+          <table className="w-full text-left text-[15px]">
+            <caption className="sr-only">Ways to buy compared by credit, money and time</caption>
+            <thead className="bg-mist text-pine">
+              <tr>
+                <th scope="col" className="px-5 py-3.5 font-semibold w-[22%]">Way to buy</th>
+                <th scope="col" className="px-5 py-3.5 font-semibold">Credit</th>
+                <th scope="col" className="px-5 py-3.5 font-semibold">Money</th>
+                <th scope="col" className="px-5 py-3.5 font-semibold w-[18%]">How long</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {WAYS.map((w) => (
+                <tr key={w.name} className="align-top">
+                  <th scope="row" className="px-5 py-5">
+                    <span className="block font-display text-lg font-semibold text-pine">{w.name}</span>
+                    <span className="block mt-1 font-normal text-sm text-slate">{w.what}</span>
+                    <WayAction action={w.action} className="mt-3 inline-block text-left text-sm font-semibold text-leaf underline underline-offset-4 decoration-leaf/40 hover:decoration-leaf" />
+                  </th>
+                  <td className="px-5 py-5 text-ink">{w.credit}</td>
+                  <td className="px-5 py-5 text-ink">{w.money}</td>
+                  <td className="px-5 py-5 text-slate">{w.speed}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
-        <p className="mt-6 text-center text-xs text-muted-foreground">
-          Credit score and down payment rules vary by lender and program. We&apos;ll go over the details on your call.
-        </p>
+        {/* Mobile: one block per way */}
+        <div className="md:hidden space-y-3">
+          {WAYS.map((w) => (
+            <details key={w.name} className="group rounded-xl border border-border bg-card open:shadow-sm">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-4 [&::-webkit-details-marker]:hidden">
+                <span>
+                  <span className="block font-display text-lg font-semibold text-pine">{w.name}</span>
+                  <span className="block text-sm text-slate">{w.what}</span>
+                </span>
+                <span className="text-2xl leading-none text-leaf transition-transform group-open:rotate-45" aria-hidden>
+                  +
+                </span>
+              </summary>
+              <dl className="grid gap-3 border-t border-border px-4 py-4 text-[15px]">
+                <div>
+                  <dt className="font-semibold text-pine">Credit</dt>
+                  <dd className="text-ink">{w.credit}</dd>
+                </div>
+                <div>
+                  <dt className="font-semibold text-pine">Money</dt>
+                  <dd className="text-ink">{w.money}</dd>
+                </div>
+                <div>
+                  <dt className="font-semibold text-pine">How long</dt>
+                  <dd className="text-slate">{w.speed}</dd>
+                </div>
+                <WayAction action={w.action} className="mt-1 inline-flex w-full items-center justify-center rounded-xl border-2 border-leaf px-4 py-3 font-semibold text-leaf" />
+              </dl>
+            </details>
+          ))}
+        </div>
+
+        <div className="mt-8 flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between rounded-2xl bg-mist px-5 py-5">
+          <p className="text-ink">
+            <span className="font-semibold">Not sure which fits?</span> Tell the guide your savings and credit range and
+            it will compare them for you.
+          </p>
+          <AskButton
+            mode="prefill"
+            question="Which way to buy fits me? I have about $____ saved and my credit score is about ____."
+            className="inline-flex items-center justify-center rounded-xl bg-leaf px-5 py-3 font-semibold text-white hover:bg-pine"
+          >
+            Ask which way fits me
+          </AskButton>
+        </div>
+        <p className="mt-3 text-sm text-slate">Credit and down payment rules vary by lender and program.</p>
       </div>
     </section>
   )

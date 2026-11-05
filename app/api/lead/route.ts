@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server"
-import { Resend } from "resend"
 import {
   OUTCOME_LABEL,
   QUESTIONS,
@@ -9,7 +8,9 @@ import {
   type Outcome,
   type Submission,
 } from "@/lib/qualifier"
+import { sendConfirmation, sendLeadEmail } from "@/lib/send-lead-email"
 import { SITE } from "@/lib/site"
+import { getSupabase } from "@/lib/supabase-server"
 
 const escape = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!)
@@ -19,21 +20,21 @@ const row = (label: string, value: string) => `<p style="margin:4px 0"><strong>$
 const ROLE_LABEL = { buyer: "Buyer", seller: "Seller", investor: "Investor" } as const
 
 function leadEmail(d: Submission, outcome: Outcome) {
-  const answers = QUESTIONS[d.role]
-    .map((q) => row(q.title, labelFor(q.id, d.answers[q.id], d.role)))
-    .join("")
-  const html = `
-    <h2 style="margin:0 0 8px">New ${ROLE_LABEL[d.role].toLowerCase()} lead</h2>
-    <p style="margin:0 0 12px;padding:8px 12px;background:#eef6ee;border-radius:6px"><strong>Result:</strong> ${escape(OUTCOME_LABEL[outcome])}</p>
-    ${row("Name", d.name)}
-    ${row("Phone", d.phone)}
-    ${row("Email", d.email)}
-    <hr style="border:none;border-top:1px solid #ddd;margin:12px 0"/>
-    ${answers}
-    ${d.message ? `<p><strong>Message:</strong><br/>${escape(d.message).replace(/\n/g, "<br/>")}</p>` : ""}
-    <p style="color:#666;font-size:12px;margin-top:12px">Agreed to be contacted by ${escape(SITE.name)} and its partner agent.</p>
-  `
-  return { subject: `[${SITE.name}] ${ROLE_LABEL[d.role]} · ${OUTCOME_LABEL[outcome]} — ${d.name}`, html }
+  const answers = QUESTIONS[d.role].map((q) => row(q.title, labelFor(q.id, d.answers[q.id], d.role))).join("")
+  return {
+    subject: `[${SITE.name}] ${ROLE_LABEL[d.role]} · ${OUTCOME_LABEL[outcome]} — ${d.name}`,
+    html: `
+      <h2 style="margin:0 0 8px">New ${ROLE_LABEL[d.role].toLowerCase()} lead</h2>
+      <p style="margin:0 0 12px;padding:8px 12px;background:#eef6ee;border-radius:6px"><strong>Result:</strong> ${escape(OUTCOME_LABEL[outcome])}</p>
+      ${row("Name", d.name)}
+      ${row("Phone", d.phone)}
+      ${row("Email", d.email)}
+      <hr style="border:none;border-top:1px solid #ddd;margin:12px 0"/>
+      ${answers}
+      ${d.message ? `<p><strong>Message:</strong><br/>${escape(d.message).replace(/\n/g, "<br/>")}</p>` : ""}
+      <p style="color:#666;font-size:12px;margin-top:12px">Agreed to be contacted by ${escape(SITE.name)} and its partner agent.</p>
+    `,
+  }
 }
 
 function confirmationEmail(d: Submission, outcome: Outcome) {
@@ -48,12 +49,17 @@ function confirmationEmail(d: Submission, outcome: Outcome) {
     investor: `We'll go over upcoming auctions, land bank listings and the numbers before you buy.`,
   }
   const booking =
-    outcome === "credit" ? SITE.creditHelp.bookingUrl : outcome === "agent" || outcome === "agent-fha" || outcome === "seller" ? SITE.agent.bookingUrl ?? SITE.consultBookingUrl : SITE.consultBookingUrl
+    outcome === "credit"
+      ? SITE.creditHelp.bookingUrl
+      : outcome === "agent" || outcome === "agent-fha" || outcome === "seller"
+        ? SITE.agent.bookingUrl ?? SITE.consultBookingUrl
+        : SITE.consultBookingUrl
   const cta = booking
-    ? `<p><a href="${booking}" style="display:inline-block;background:#c8642c;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:bold">Pick a time for your free call</a></p>`
+    ? `<p><a href="${booking}" style="display:inline-block;background:#edba2f;color:#17201d;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:bold">Pick a time for your free call</a></p>`
     : `<p>We'll call or text you within one business day to set up your free 30-minute call.</p>`
   return {
     subject: `Your next step — ${SITE.name}`,
+    replyTo: SITE.email,
     html: `
       <p>Hi ${first},</p>
       <p>Thanks for answering our questions. ${escape(next[outcome])}</p>
@@ -62,14 +68,6 @@ function confirmationEmail(d: Submission, outcome: Outcome) {
     `,
   }
 }
-
-const FALLBACK_FROM = "onboarding@resend.dev"
-
-const sendFail = () =>
-  NextResponse.json(
-    { ok: false, error: `We couldn't send your request right now. Please email us at ${SITE.email}.` },
-    { status: 502 }
-  )
 
 export async function POST(req: Request) {
   let body: unknown
@@ -81,9 +79,7 @@ export async function POST(req: Request) {
 
   // Bots that fill the hidden field get a quiet "ok" and nothing is sent.
   const b = body as Record<string, unknown> | null
-  if (b && typeof b.website === "string" && b.website.length > 0) {
-    return NextResponse.json({ ok: true })
-  }
+  if (b && typeof b.website === "string" && b.website.length > 0) return NextResponse.json({ ok: true })
 
   const parsed = SubmissionSchema.safeParse(body)
   if (!parsed.success) {
@@ -92,49 +88,36 @@ export async function POST(req: Request) {
   const data = parsed.data
   const outcome = getOutcome(data.role, data.answers)
 
-  const apiKey = process.env.RESEND_API_KEY
-  const recipients = process.env.LEAD_TO_EMAIL?.split(",").map((e) => e.trim()).filter(Boolean) ?? []
-  const from = (process.env.LEAD_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || FALLBACK_FROM).trim()
+  // 1) Save the lead (when Supabase is set up). A saved lead counts as received even if email fails.
+  let leadId: string | null = null
+  const db = getSupabase()
+  if (db) {
+    const { data: rowData, error } = await db
+      .from("leads")
+      .insert({ role: data.role, outcome, name: data.name, phone: data.phone, email: data.email, answers: data.answers, message: data.message ?? null })
+      .select("id")
+      .single()
+    if (error) console.error("[lead] supabase insert failed", error.message)
+    else leadId = rowData?.id ?? null
+  }
 
-  if (!apiKey || recipients.length === 0) {
-    console.error("[lead] missing RESEND_API_KEY or LEAD_TO_EMAIL", { hasKey: Boolean(apiKey), recipientCount: recipients.length })
+  // 2) Email the lead to the team
+  const sentFrom = await sendLeadEmail({ ...leadEmail(data, outcome), replyTo: data.email })
+  if (!sentFrom) {
+    if (leadId) return NextResponse.json({ ok: true, outcome })
+    console.error("[lead] UNSENT LEAD", JSON.stringify({ outcome, role: data.role, name: data.name, phone: data.phone, email: data.email, answers: data.answers }))
     return NextResponse.json(
       { ok: false, error: `We couldn't send your request right now. Please email us at ${SITE.email}.` },
-      { status: 500 }
+      { status: 502 }
     )
   }
-
-  const resend = new Resend(apiKey)
-  const lead = leadEmail(data, outcome)
-
-  // Try the configured sender first, then Resend's built-in sender (works if the custom domain lapses).
-  const senders = from === FALLBACK_FROM ? [from] : [from, FALLBACK_FROM]
-  let sentFrom: string | null = null
-  for (const sender of senders) {
-    try {
-      const { error } = await resend.emails.send({ from: sender, to: recipients, replyTo: data.email, ...lead })
-      if (!error) {
-        sentFrom = sender
-        break
-      }
-      console.error("[lead] resend error", { sender, message: error.message })
-    } catch (err) {
-      console.error("[lead] send threw", { sender, err })
-    }
-  }
-  if (!sentFrom) {
-    // Keep the lead recoverable from Vercel logs even when email is down.
-    console.error("[lead] UNSENT LEAD", JSON.stringify({ outcome, role: data.role, name: data.name, phone: data.phone, email: data.email, answers: data.answers }))
-    return sendFail()
+  if (db && leadId) {
+    const { error } = await db.from("leads").update({ email_sent: true }).eq("id", leadId)
+    if (error) console.warn("[lead] supabase update failed", error.message)
   }
 
-  // Confirmation to the person. Best-effort: the lead is already delivered if this fails.
-  try {
-    const { error } = await resend.emails.send({ from: sentFrom, to: [data.email], replyTo: SITE.email, ...confirmationEmail(data, outcome) })
-    if (error) console.warn("[lead] confirmation email not sent", { message: error.message })
-  } catch (err) {
-    console.warn("[lead] confirmation email threw", err)
-  }
+  // 3) Confirmation to the person (only works once a domain is verified in Resend)
+  await sendConfirmation(data.email, sentFrom, confirmationEmail(data, outcome))
 
   return NextResponse.json({ ok: true, outcome })
 }

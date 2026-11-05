@@ -1,62 +1,52 @@
 import Link from "next/link"
-import { ArrowRight, ShieldCheck, TrendingUp, Wallet } from "lucide-react"
-import { SITE, consultHref } from "@/lib/site"
+import { SITE } from "@/lib/site"
 
 const HELP = [
-  { icon: ShieldCheck, title: "Credit repair", body: "We go through your report with you and dispute what's wrong." },
-  { icon: TrendingUp, title: "Credit building", body: "A simple plan to raise your score toward the number you need." },
-  { icon: Wallet, title: "Savings plan", body: "Set a down payment goal and find programs that match what you save." },
+  { title: "Credit repair", body: "We go through your report with you and dispute what's wrong." },
+  { title: "Credit building", body: "A simple plan to raise your score toward the number you need." },
+  { title: "Savings plan", body: "A down payment goal, plus programs that match what you save." },
 ]
 
 export function CreditHelp() {
-  const href = SITE.creditHelp.bookingUrl ?? consultHref()
+  const href = SITE.creditHelp.bookingUrl ?? "/#contact-credit"
+  const external = Boolean(SITE.creditHelp.bookingUrl)
   return (
-    <section id="credit" className="py-20 px-4 sm:px-6 lg:px-8 bg-secondary text-secondary-foreground scroll-mt-20">
-      <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
-        <div className="reveal">
-          <p className="text-sm font-semibold uppercase tracking-widest text-accent mb-3">Credit not ready yet?</p>
-          <h2 className="text-4xl font-bold mb-4 text-balance">We help you get there</h2>
-          <p className="text-lg text-secondary-foreground/80 text-pretty mb-8">
-            A low score doesn&apos;t end the conversation. We work with you on your credit and savings so
-            you come back ready — and in the meantime, auctions and land bank properties don&apos;t need a
-            credit check at all.
+    <section id="credit" className="py-16 sm:py-20 px-5 sm:px-6 lg:px-8 bg-pine text-[#eef4f0] scroll-mt-20">
+      <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
+        <div>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white text-balance">Credit not ready yet? Start here.</h2>
+          <p className="mt-4 text-lg text-[#cfe0d7] text-pretty">
+            A low score doesn&apos;t end the conversation. We work on your credit and savings with you so you come back
+            ready — and county auctions and the land bank don&apos;t use a credit check at all.
           </p>
           <Link
             href={href}
-            className="inline-flex items-center gap-2 rounded-lg bg-accent px-6 py-3 font-bold text-accent-foreground hover:bg-accent/90"
+            {...(external ? { target: "_blank", rel: "noreferrer noopener" } : {})}
+            className="mt-7 inline-flex items-center justify-center rounded-xl bg-goldenrod px-6 py-3.5 font-semibold text-ink hover:bg-[#f4c94e]"
           >
-            Get credit help <ArrowRight className="h-4 w-4" />
+            Get credit help
           </Link>
         </div>
-
-        <div className="grid gap-4 reveal-stagger">
-          {HELP.map(({ icon: Icon, title, body }) => (
-            <div key={title} className="flex gap-4 rounded-2xl bg-secondary-foreground/5 border border-secondary-foreground/15 p-5">
-              <div className="p-2.5 rounded-xl bg-accent/20 h-fit">
-                <Icon className="h-5 w-5 text-accent" />
-              </div>
-              <div>
-                <h3 className="font-bold mb-1">{title}</h3>
-                <p className="text-sm text-secondary-foreground/75 text-pretty">{body}</p>
-              </div>
+        <dl className="divide-y divide-white/12 border-y border-white/12">
+          {HELP.map((h) => (
+            <div key={h.title} className="py-5">
+              <dt className="font-display text-xl font-semibold text-goldenrod">{h.title}</dt>
+              <dd className="mt-1 text-[#cfe0d7]">{h.body}</dd>
             </div>
           ))}
           {SITE.creditHelp.affiliateLinks.length > 0 && (
-            <div className="flex flex-wrap gap-3 pt-1">
-              {SITE.creditHelp.affiliateLinks.map((l) => (
-                <a
-                  key={l.href}
-                  href={l.href}
-                  target="_blank"
-                  rel="noreferrer noopener sponsored"
-                  className="text-sm font-semibold text-accent hover:underline"
-                >
-                  {l.label} ↗
-                </a>
-              ))}
+            <div className="py-5">
+              <dt className="font-semibold text-white">Tools that help build credit</dt>
+              <dd className="mt-2 flex flex-wrap gap-x-5 gap-y-2">
+                {SITE.creditHelp.affiliateLinks.map((l) => (
+                  <a key={l.href} href={l.href} target="_blank" rel="noreferrer noopener sponsored" className="underline underline-offset-4 decoration-goldenrod hover:text-white">
+                    {l.label}
+                  </a>
+                ))}
+              </dd>
             </div>
           )}
-        </div>
+        </dl>
       </div>
     </section>
   )

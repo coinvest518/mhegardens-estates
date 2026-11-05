@@ -37,7 +37,7 @@ export default function AccountPage() {
             <div className="space-y-6" data-testid="account-signed-in">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <p className="text-sm font-semibold uppercase tracking-widest text-accent">My account</p>
+                  <p className="text-sm font-semibold text-leaf">My account</p>
                   <h1 className="text-3xl font-bold text-foreground">
                     Hi{user.displayName ? `, ${user.displayName}` : ""}
                   </h1>

@@ -1,27 +1,19 @@
-import { CheckCircle2 } from "lucide-react"
 import { Qualifier } from "@/components/qualifier/qualifier"
 import { SITE } from "@/lib/site"
 
 export function QualifierSection() {
   return (
-    <section id="consult" className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30 scroll-mt-16">
+    <section id="consult" className="py-16 sm:py-20 px-5 sm:px-6 lg:px-8 scroll-mt-16">
       <div className="max-w-5xl mx-auto grid lg:grid-cols-5 gap-10 items-start">
-        <div className="lg:col-span-2 reveal">
-          <p className="text-sm font-semibold uppercase tracking-widest text-accent mb-3">Free consultation</p>
-          <h2 className="text-4xl font-bold text-foreground mb-4 text-balance">See if you qualify</h2>
-          <p className="text-muted-foreground text-pretty mb-6">
-            Answer a few quick questions and we&apos;ll show you your best path — then book your free 30-minute call.
-            No credit check.
+        <div className="lg:col-span-2">
+          <h2 className="text-3xl sm:text-4xl font-bold text-pine text-balance">See if you qualify</h2>
+          <p className="mt-3 text-lg text-slate text-pretty">
+            A few quick questions, then your best path and a free 30-minute call. No credit check.
           </p>
-          <ul className="space-y-3 text-sm text-muted-foreground">
-            <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-primary mt-0.5" /> Takes about a minute</li>
-            <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-primary mt-0.5" /> Agent help in {SITE.agent.languages}</li>
-            <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-primary mt-0.5" /> Credit help if you need it first</li>
-          </ul>
+          <p className="mt-4 text-slate">Agent help in {SITE.agent.languages}.</p>
         </div>
-
-        <div className="lg:col-span-3 reveal" style={{ "--reveal-delay": "120ms" } as React.CSSProperties}>
-          <div className="bg-card border border-border rounded-2xl shadow-sm p-6 sm:p-8" data-testid="qualifier-inline">
+        <div className="lg:col-span-3">
+          <div className="rounded-2xl border border-border bg-card p-5 sm:p-8 shadow-[0_1px_0_rgba(24,61,51,0.04)]" data-testid="qualifier-inline">
             <Qualifier />
           </div>
         </div>
