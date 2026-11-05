@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /account
 
-Sitemap: https://mhegardens.vercel.app/sitemap.xml
+Sitemap: https://www.mhegardens.xyz/sitemap.xml
