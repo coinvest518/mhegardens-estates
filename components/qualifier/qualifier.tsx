@@ -65,7 +65,7 @@ function WeWillCall() {
   return (
     <p className="flex items-start gap-2 rounded-xl bg-muted/50 p-3 text-sm text-foreground">
       <Phone className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-      We&apos;ll call or text you within one business day to set up your free 30-minute call. Check your email too.
+      We&apos;ll call or text you within one business day to set up your free 30-minute call.
     </p>
   )
 }
@@ -321,7 +321,7 @@ export function Qualifier({ onNavigate }: { onNavigate?: () => void }) {
         <form onSubmit={submit} noValidate className="space-y-4" data-testid="qualifier-contact">
           <div>
             <h3 className="text-2xl font-bold text-foreground text-balance">Almost done — where should we reach you?</h3>
-            <p className="text-muted-foreground mt-1">We&apos;ll show your results next and email you a copy.</p>
+            <p className="text-muted-foreground mt-1">We&apos;ll show your results on the next screen.</p>
           </div>
           <input
             type="text"
