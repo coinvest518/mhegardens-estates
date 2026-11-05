@@ -10,6 +10,9 @@ import { EducationGrid } from "@/components/education-grid"
 import { QualifierSection } from "@/components/qualifier/qualifier-section"
 import { SiteFooter } from "@/components/site-footer"
 
+// The hero shows this month's Land Bank list; refresh every 6 hours.
+export const revalidate = 21600
+
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">

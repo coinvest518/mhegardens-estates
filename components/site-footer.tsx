@@ -7,8 +7,9 @@ const LINKS = [
   { href: "/#ask", label: "Ask a question" },
   { href: "/#credit", label: "Credit help" },
   { href: "/programs", label: "Down payment help" },
+  { href: "/land-bank", label: "Land bank list" },
   { href: "/auctions", label: "Tax auctions" },
-  { href: "/education", label: "Guides" },
+  { href: "/education", label: "Learn" },
   { href: "/#consult", label: "See if you qualify" },
 ]
 
@@ -36,7 +37,7 @@ export function SiteFooter() {
               ))}
               <li>
                 <a href={BUNDLE.buyLink} target="_blank" rel="noreferrer noopener" className="hover:text-white hover:underline underline-offset-4 decoration-goldenrod">
-                  Guide bundle (${BUNDLE.priceUSD})
+                  Ebook bundle (${BUNDLE.priceUSD})
                 </a>
               </li>
             </ul>

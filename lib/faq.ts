@@ -13,7 +13,7 @@ export const FAQ = [
   },
   {
     q: "What are tax auctions and tax deeds?",
-    a: "When owners don't pay property taxes for years, the county can take the property and sell it at a public auction — mostly online in Upstate New York. You need a bidder account, a registration packet and the money ready. Our guides and the Auctions page walk through it.",
+    a: "When owners don't pay property taxes for years, the county can take the property and sell it at a public auction — mostly online in Upstate New York. You need a bidder account, a registration packet and the money ready. Our free lessons and the Auctions page walk through it.",
   },
   {
     q: "What's a land bank?",

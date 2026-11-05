@@ -12,19 +12,31 @@ import { useAuth } from "@/components/auth-provider"
 import { CONTACT_TOPICS, ContactRequestSchema, type ContactTopic } from "@/lib/contact"
 import { SITE } from "@/lib/site"
 
-/** Links to "#contact-credit", "#contact-agent" or "#contact-auction" open the matching popup. */
-const CONTACT_RE = /#contact-(credit|agent|auction)$/
+/**
+ * Links to "#contact-credit", "#contact-agent", "#contact-auction" or "#contact-landbank" open the matching popup.
+ * Code can also open one with a message already filled in:
+ *   window.dispatchEvent(new CustomEvent("mhe:contact", { detail: { topic: "landbank", message: "..." } }))
+ */
+const CONTACT_RE = /#contact-(credit|agent|auction|landbank)$/
 
 type Errors = Partial<Record<"need" | "name" | "phone" | "email" | "consent", string>>
 
-function ContactForm({ topic, onNavigate }: { topic: ContactTopic; onNavigate: () => void }) {
+function ContactForm({
+  topic,
+  onNavigate,
+  initialMessage = "",
+}: {
+  topic: ContactTopic
+  onNavigate: () => void
+  initialMessage?: string
+}) {
   const t = CONTACT_TOPICS[topic]
   const { user } = useAuth()
   const [need, setNeed] = useState("")
   const [name, setName] = useState(user?.displayName ?? "")
   const [phone, setPhone] = useState("")
   const [email, setEmail] = useState(user?.email ?? "")
-  const [message, setMessage] = useState("")
+  const [message, setMessage] = useState(initialMessage)
   const [consent, setConsent] = useState(false)
   const [website, setWebsite] = useState("")
   const [errors, setErrors] = useState<Errors>({})
@@ -224,6 +236,7 @@ function ContactForm({ topic, onNavigate }: { topic: ContactTopic; onNavigate: (
 export function ContactModal() {
   const [topic, setTopic] = useState<ContactTopic | null>(null)
   const [session, setSession] = useState(0)
+  const [initialMessage, setInitialMessage] = useState("")
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -233,10 +246,22 @@ export function ContactModal() {
       if (!m) return
       e.preventDefault()
       setSession((s) => s + 1)
+      setInitialMessage("")
       setTopic(m[1] as ContactTopic)
     }
+    const onOpen = (e: Event) => {
+      const { topic: t, message } = (e as CustomEvent<{ topic: ContactTopic; message?: string }>).detail ?? {}
+      if (!t || !(t in CONTACT_TOPICS)) return
+      setSession((s) => s + 1)
+      setInitialMessage(message ?? "")
+      setTopic(t)
+    }
     document.addEventListener("click", onClick, true)
-    return () => document.removeEventListener("click", onClick, true)
+    window.addEventListener("mhe:contact", onOpen)
+    return () => {
+      document.removeEventListener("click", onClick, true)
+      window.removeEventListener("mhe:contact", onOpen)
+    }
   }, [])
 
   return (
@@ -244,7 +269,14 @@ export function ContactModal() {
       <DialogContent className="sm:max-w-lg max-h-[92dvh] overflow-y-auto p-5 sm:p-8" data-testid="contact-modal">
         <DialogTitle className="sr-only">{topic ? CONTACT_TOPICS[topic].title : "Contact"}</DialogTitle>
         <DialogDescription className="sr-only">Tell us what you need and how to reach you.</DialogDescription>
-        {topic && <ContactForm key={`${topic}-${session}`} topic={topic} onNavigate={() => setTopic(null)} />}
+        {topic && (
+          <ContactForm
+            key={`${topic}-${session}`}
+            topic={topic}
+            initialMessage={initialMessage}
+            onNavigate={() => setTopic(null)}
+          />
+        )}
       </DialogContent>
     </Dialog>
   )

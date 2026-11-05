@@ -4,7 +4,7 @@ import { z } from "zod"
  * Small, topic-specific contact popups (credit help, talk with Ruth, auction help).
  * Each asks one question about what the person needs, plus contact details.
  */
-export type ContactTopic = "credit" | "agent" | "auction"
+export type ContactTopic = "credit" | "agent" | "auction" | "landbank"
 
 export const CONTACT_TOPICS: Record<
   ContactTopic,
@@ -46,11 +46,23 @@ export const CONTACT_TOPICS: Record<
     ],
     thanks: "We'll call or text you within one business day.",
   },
+  landbank: {
+    title: "Get help buying from the Land Bank",
+    intro: "Applications are due by 2 PM on the last Tuesday of each month. Tell us where you are and we'll help you get yours in.",
+    question: "What do you need help with?",
+    options: [
+      { value: "pick-property", label: "Picking a property" },
+      { value: "viewing", label: "Setting up a viewing" },
+      { value: "application", label: "Filling out the application" },
+      { value: "budget", label: "My budget and timeline (Form A)" },
+    ],
+    thanks: "We'll call or text you within one business day — before this month's deadline if we can.",
+  },
 }
 
 export const ContactRequestSchema = z
   .object({
-    topic: z.enum(["credit", "agent", "auction"]),
+    topic: z.enum(["credit", "agent", "auction", "landbank"]),
     need: z.string().min(1, "Choose one").max(40),
     name: z.string().trim().min(1, "Please enter your name").max(120),
     phone: z

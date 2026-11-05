@@ -77,7 +77,7 @@ export async function POST(req: Request) {
   const total = messages.reduce((n, m) => n + m.content.length, 0)
   if (total > 12000) return json(400, "This conversation is long. Start a new one to keep going.")
 
-  const payload = [{ role: "system", content: buildSystemPrompt() }, ...messages.slice(-12)]
+  const payload = [{ role: "system", content: await buildSystemPrompt() }, ...messages.slice(-12)]
 
   let upstream: Response | null = null
   let used = ""

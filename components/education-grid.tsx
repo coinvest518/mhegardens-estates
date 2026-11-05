@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { BUNDLE, GUIDES } from "@/lib/education"
+import { BUNDLE } from "@/lib/education"
+import { LESSONS } from "@/lib/learn"
 import { FAQ } from "@/lib/faq"
 
 export function EducationGrid() {
@@ -10,28 +11,26 @@ export function EducationGrid() {
         <div>
           <h2 className="text-3xl sm:text-4xl font-bold text-pine text-balance">Read up first</h2>
           <p className="mt-3 text-lg text-slate text-pretty">
-            Plain-English guides on tax deeds, cheap land and first-time buyer programs. One is free; three come in a $
-            {BUNDLE.priceUSD} bundle.
+            Free lessons on how tax-foreclosed property is sold in New York, plus guides you can keep.
           </p>
           <ul className="mt-6 divide-y divide-border border-y border-border">
-            {GUIDES.map((g) => (
-              <li key={g.id}>
-                <Link href={`/education#${g.id}`} className="flex items-start justify-between gap-4 py-4 hover:text-leaf">
-                  <span className="font-semibold text-ink">{g.title}</span>
-                  <span
-                    className={`flex-shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                      g.gated ? "bg-white text-slate border border-border" : "bg-leaf text-white"
-                    }`}
-                  >
-                    {g.gated ? "Bundle" : "Free"}
-                  </span>
+            {LESSONS.map((l) => (
+              <li key={l.slug}>
+                <Link href={`/learn/${l.slug}`} className="flex items-start justify-between gap-4 py-4 hover:text-leaf">
+                  <span className="font-semibold text-ink">{l.title}</span>
+                  <span className="flex-shrink-0 text-sm text-slate">{l.minutes} min</span>
                 </Link>
               </li>
             ))}
           </ul>
-          <Link href="/education" className="mt-5 inline-block font-semibold text-leaf underline underline-offset-4 hover:text-pine">
-            See all guides
-          </Link>
+          <p className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
+            <Link href="/education" className="font-semibold text-leaf underline underline-offset-4 hover:text-pine">
+              All lessons and guides
+            </Link>
+            <a href={BUNDLE.buyLink} target="_blank" rel="noreferrer noopener" className="font-semibold text-leaf underline underline-offset-4 hover:text-pine">
+              Ebook bundle, ${BUNDLE.priceUSD}<span className="sr-only"> (opens in a new tab)</span>
+            </a>
+          </p>
         </div>
 
         <div id="faq">

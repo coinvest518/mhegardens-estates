@@ -7,7 +7,7 @@
  * MHE Gardens palette
  *   Pine       #183D33  deep Adirondack pine — hero, dark bands, headings
  *   Leaf       #1F5C47  buttons and links on light backgrounds
- *   Goldenrod  #EDBA2F  New York's state flower — primary CTA on dark, parcel highlights
+ *   Goldenrod  #EDBA2F  New York's state flower — primary CTA on dark, highlights
  *   Paper      #FAFBF9  page background (crisp, not cream)
  *   Mist       #EAF1ED  alternate sections, quiet fills
  *   Ink        #17201D  body text
@@ -140,40 +140,7 @@
   }
 }
 
-/* The one moment of motion: the highlighted parcels on the hero map draw themselves in. */
-@keyframes parcel-draw {
-  from {
-    stroke-dashoffset: var(--len, 600);
-    fill-opacity: 0;
-  }
-  70% {
-    stroke-dashoffset: 0;
-    fill-opacity: 0;
-  }
-  to {
-    stroke-dashoffset: 0;
-    fill-opacity: 1;
-  }
-}
-@keyframes tag-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-.parcel-draw {
-  stroke-dasharray: var(--len, 600);
-  animation: parcel-draw 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-.parcel-tag {
-  animation: tag-in 0.5s ease-out both;
-}
-
-/* Typing indicator for the AI chat */
+/* Typing dots in the AI guide while it writes. */
 @keyframes chat-dot {
   0%,
   80%,
@@ -192,11 +159,8 @@
   html {
     scroll-behavior: auto;
   }
-  .parcel-draw,
-  .parcel-tag,
   .chat-dot {
     animation: none !important;
-    stroke-dasharray: none;
   }
 }
 

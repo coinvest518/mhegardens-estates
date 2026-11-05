@@ -34,7 +34,7 @@ const WAYS: { name: string; what: string; credit: string; money: string; speed: 
     credit: "They review your application, your plan and proof of funds — not a bidding war.",
     money: "Often low prices, plus money to fix the property up.",
     speed: "Weeks to a few months for approval.",
-    action: { kind: "ask", question: "How do I buy a property from the Albany County Land Bank?", label: "Ask how the land bank works" },
+    action: { kind: "link", href: "/land-bank", label: "See this month's list" },
   },
   {
     name: "Fix and flip",

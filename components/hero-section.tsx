@@ -1,6 +1,8 @@
+import Image from "next/image"
 import Link from "next/link"
-import { Home, MapPin, MessageCircle, Tag, TrendingUp } from "lucide-react"
-import { PlatMap } from "@/components/plat-map"
+import { ArrowUpRight, Home, MapPin, MessageCircle, Tag, TrendingUp } from "lucide-react"
+import { formatDeadline, landBankDeadline } from "@/lib/land-bank"
+import { getLandBankList, summarize } from "@/lib/land-bank-listings"
 import { SITE } from "@/lib/site"
 
 const ROLES = [
@@ -9,7 +11,11 @@ const ROLES = [
   { href: "/#consult-investor", icon: TrendingUp, label: "I want to invest", hint: "Auctions, flips, rentals" },
 ]
 
-export function HeroSection() {
+export async function HeroSection() {
+  const list = await getLandBankList()
+  const stats = summarize(list)
+  const deadline = landBankDeadline(list.cycle)
+  const open = new Date() <= deadline
   return (
     <section className="relative overflow-hidden bg-pine text-[#eef4f0]">
       <div className="relative max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-14 lg:pb-20">
@@ -57,12 +63,39 @@ export function HeroSection() {
           </div>
 
           <div className="lg:col-span-6">
-            <div className="rounded-2xl border border-white/12 bg-pine-deep/60 p-3 sm:p-5">
-              <PlatMap className="w-full h-auto" />
-              <p className="mt-3 px-1 text-sm text-[#b9cdc3]">
-                Three ways to get a lot like these: apply to the land bank, bid at a county auction, or buy one that&apos;s
-                listed — with or without a mortgage.
-              </p>
+            <div className="relative overflow-hidden rounded-2xl border border-white/12">
+              <Image
+                src="/images/hero-home-on-land.webp"
+                alt="A small home on a wooded lot"
+                width={880}
+                height={880}
+                priority
+                sizes="(min-width: 1024px) 600px, 100vw"
+                className="aspect-[16/11] w-full object-cover lg:aspect-[5/6]"
+              />
+              <Link
+                href="/land-bank"
+                className="group absolute inset-x-3 bottom-3 block rounded-xl bg-white/95 p-4 text-ink shadow-lg backdrop-blur transition-colors hover:bg-white sm:inset-x-5 sm:bottom-5 sm:p-5"
+                data-testid="hero-land-bank"
+              >
+                <span className="block text-sm font-semibold text-leaf">This month at the Albany County Land Bank</span>
+                {stats.total > 0 ? (
+                  <>
+                    <span className="mt-1 block font-display text-xl font-bold text-pine sm:text-2xl">
+                      {stats.total} properties{stats.minPrice !== null ? `, lots from $${stats.minPrice.toLocaleString("en-US")}` : ""}
+                    </span>
+                    <span className="mt-1 flex items-center justify-between gap-3 text-[15px] text-slate">
+                      {open ? `Apply by ${formatDeadline(deadline)}` : "A new list posts the first business day of the month"}
+                      <ArrowUpRight className="h-5 w-5 flex-shrink-0 text-leaf transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden />
+                    </span>
+                  </>
+                ) : (
+                  <span className="mt-1 flex items-center justify-between gap-3 font-display text-xl font-bold text-pine">
+                    Vacant lots and houses by application
+                    <ArrowUpRight className="h-5 w-5 flex-shrink-0 text-leaf" aria-hidden />
+                  </span>
+                )}
+              </Link>
             </div>
           </div>
         </div>

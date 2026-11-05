@@ -32,19 +32,21 @@ const STEPS = [
   "Bid online, and have your deposit and payment ready if you win.",
 ]
 
-export function AuctionHub({ upcoming }: { upcoming: AuctionEvent[] }) {
+export function AuctionHub({ upcoming, landBank }: { upcoming: AuctionEvent[]; landBank?: React.ReactNode }) {
   return (
     <section className="pt-28 pb-24 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-14">
           <h1 className="text-4xl md:text-5xl font-bold text-pine mb-5 text-balance">
-            County tax auctions in Upstate New York
+            Land bank and tax auctions in Upstate New York
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty">
-            Counties sell tax-foreclosed land and houses at public auctions, mostly online. Here&apos;s what&apos;s coming
-            up and how to get ready.
+            Two ways to buy tax-foreclosed land and houses for less: apply to the Albany County Land Bank, or bid at a
+            county auction. Here&apos;s this month&apos;s land bank list, the auctions coming up, and how to get ready.
           </p>
         </div>
+
+        {landBank}
 
         {/* Upcoming auctions */}
         <div className="mb-16">
@@ -163,7 +165,11 @@ export function AuctionHub({ upcoming }: { upcoming: AuctionEvent[] }) {
                 ))}
               </ol>
               <p className="text-sm text-muted-foreground text-pretty">
-                Want someone to walk you through it? We help with registration, research and bidding plans.
+                What it really costs, and the mistakes to avoid:{" "}
+                <Link href="/learn/online-tax-auctions" className="font-semibold text-leaf underline underline-offset-4">
+                  read the step-by-step lesson
+                </Link>
+                . Want someone to walk you through it? We help with registration, research and bidding plans.
               </p>
               <Button asChild className="w-full">
                 <Link href="/#contact-auction">

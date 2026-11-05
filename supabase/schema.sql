@@ -10,7 +10,7 @@ create extension if not exists vector;
 create table if not exists public.leads (
   id          uuid primary key default gen_random_uuid(),
   created_at  timestamptz not null default now(),
-  role        text not null check (role in ('buyer', 'seller', 'investor', 'credit', 'agent', 'auction')),
+  role        text not null check (role in ('buyer', 'seller', 'investor', 'credit', 'agent', 'auction', 'landbank')),
   outcome     text not null,
   name        text not null,
   phone       text not null,

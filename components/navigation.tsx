@@ -12,8 +12,8 @@ const NAV_LINKS = [
   { href: "/#ask", label: "Ask a question" },
   { href: "/#credit", label: "Credit help" },
   { href: "/programs", label: "Down payment help" },
-  { href: "/auctions", label: "Auctions" },
-  { href: "/education", label: "Guides" },
+  { href: "/auctions", label: "Land bank & auctions" },
+  { href: "/education", label: "Learn" },
 ]
 
 export function Navigation() {
@@ -45,7 +45,7 @@ export function Navigation() {
             <span className={`font-display text-xl font-bold ${solid ? "text-pine" : "text-white"}`}>{SITE.name}</span>
           </Link>
 
-          <div className="hidden xl:flex items-center gap-7">
+          <div className="hidden xl:flex items-center gap-6">
             {NAV_LINKS.map((link) => (
               <Link key={link.href} href={link.href} className={`whitespace-nowrap text-[15px] font-medium hover:underline underline-offset-4 decoration-goldenrod ${tone}`}>
                 {link.label}
