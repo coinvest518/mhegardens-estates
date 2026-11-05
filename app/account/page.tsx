@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Loader2, LogOut, CalendarCheck, ClipboardList } from "lucide-react"
+import Link from "next/link"
+import { Loader2, LogOut, CalendarCheck, ClipboardList, HandCoins } from "lucide-react"
 import { Navigation } from "@/components/navigation"
 import { SiteFooter } from "@/components/site-footer"
 import { Button } from "@/components/ui/button"
@@ -47,6 +48,20 @@ export default function AccountPage() {
                   <LogOut className="mr-2 h-4 w-4" /> Sign out
                 </Button>
               </div>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center gap-3 space-y-0">
+                  <HandCoins className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-lg">Down payment programs</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                  Your account unlocks the full list of matched savings, grants and forgivable loans for first-time
+                  buyers.{" "}
+                  <Link href="/programs" className="font-semibold text-leaf underline underline-offset-4">
+                    See all programs
+                  </Link>
+                </CardContent>
+              </Card>
 
               <Card>
                 <CardHeader className="flex flex-row items-center gap-3 space-y-0">

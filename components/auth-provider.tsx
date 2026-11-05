@@ -30,6 +30,7 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [profileVersion, setProfileVersion] = useState(0)
 
   useEffect(() => {
     if (!isFirebaseConfigured) {
@@ -46,9 +47,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = useCallback(async (name: string, email: string, password: string) => {
     const cred = await createUserWithEmailAndPassword(getFirebaseAuth(), email, password)
     if (name.trim()) {
+      // updateProfile sets displayName on this same user object. Keep the real User (a copy would lose
+      // methods like getIdToken) and bump a counter so screens re-render with the new name.
       await updateProfile(cred.user, { displayName: name.trim() })
-      // Refresh local state so the new display name shows immediately.
-      setUser({ ...cred.user, displayName: name.trim() } as User)
+      setUser(cred.user)
+      setProfileVersion((v) => v + 1)
     }
   }, [])
 
@@ -79,7 +82,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       resetPassword,
       signOut,
     }),
-    [user, loading, signUp, signIn, signInWithGoogle, resetPassword, signOut]
+    // profileVersion: re-render consumers when the same user object's profile changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user, loading, profileVersion, signUp, signIn, signInWithGoogle, resetPassword, signOut]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

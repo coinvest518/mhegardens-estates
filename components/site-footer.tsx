@@ -6,6 +6,7 @@ const LINKS = [
   { href: "/#ways", label: "Ways to buy" },
   { href: "/#ask", label: "Ask a question" },
   { href: "/#credit", label: "Credit help" },
+  { href: "/programs", label: "Down payment help" },
   { href: "/auctions", label: "Tax auctions" },
   { href: "/education", label: "Guides" },
   { href: "/#consult", label: "See if you qualify" },

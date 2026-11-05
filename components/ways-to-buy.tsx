@@ -18,7 +18,7 @@ const WAYS: { name: string; what: string; credit: string; money: string; speed: 
     credit: "Depends on the program. Many are for first-time buyers.",
     money: "Your savings, matched. Income limits often apply.",
     speed: "You save over months, then buy with a mortgage.",
-    action: { kind: "ask", question: "What down payment matching programs can help first-time buyers in the Albany area?", label: "Ask about matching programs" },
+    action: { kind: "link", href: "/programs", label: "See matching programs" },
   },
   {
     name: "County tax auction",

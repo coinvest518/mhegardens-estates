@@ -33,10 +33,13 @@ export function AuthDialog({
   open,
   onOpenChange,
   initialMode = "signin",
+  signupDescription,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   initialMode?: Mode
+  /** Optional reason shown when creating an account (e.g. what it unlocks). */
+  signupDescription?: string
 }) {
   const { signIn, signUp, signInWithGoogle, resetPassword } = useAuth()
   const [mode, setMode] = useState<Mode>(initialMode)
@@ -112,7 +115,7 @@ export function AuthDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{copy.title}</DialogTitle>
-          <DialogDescription>{copy.description}</DialogDescription>
+          <DialogDescription>{mode === "signup" && signupDescription ? signupDescription : copy.description}</DialogDescription>
         </DialogHeader>
 
         {mode !== "reset" && (

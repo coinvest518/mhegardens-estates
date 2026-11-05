@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { href: "/#ways", label: "Ways to buy" },
   { href: "/#ask", label: "Ask a question" },
   { href: "/#credit", label: "Credit help" },
+  { href: "/programs", label: "Down payment help" },
   { href: "/auctions", label: "Auctions" },
   { href: "/education", label: "Guides" },
 ]
@@ -44,15 +45,15 @@ export function Navigation() {
             <span className={`font-display text-xl font-bold ${solid ? "text-pine" : "text-white"}`}>{SITE.name}</span>
           </Link>
 
-          <div className="hidden lg:flex items-center gap-7">
+          <div className="hidden xl:flex items-center gap-7">
             {NAV_LINKS.map((link) => (
-              <Link key={link.href} href={link.href} className={`text-[15px] font-medium hover:underline underline-offset-4 decoration-goldenrod ${tone}`}>
+              <Link key={link.href} href={link.href} className={`whitespace-nowrap text-[15px] font-medium hover:underline underline-offset-4 decoration-goldenrod ${tone}`}>
                 {link.label}
               </Link>
             ))}
           </div>
 
-          <div className="hidden lg:flex items-center gap-2">
+          <div className="hidden xl:flex items-center gap-2">
             <AccountButton className={`text-[15px] ${solid ? "text-ink hover:bg-mist" : "text-[#eef4f0] hover:bg-white/10 hover:text-white"}`} />
             <Link href="/#consult" className="inline-flex items-center rounded-xl bg-goldenrod px-4 py-2.5 text-[15px] font-semibold text-ink hover:bg-[#f4c94e]">
               See if you qualify
@@ -60,7 +61,7 @@ export function Navigation() {
           </div>
 
           <button
-            className={`lg:hidden -mr-2 p-2.5 rounded-lg ${solid ? "text-ink hover:bg-mist" : "text-white hover:bg-white/10"}`}
+            className={`xl:hidden -mr-2 p-2.5 rounded-lg ${solid ? "text-ink hover:bg-mist" : "text-white hover:bg-white/10"}`}
             onClick={() => setIsOpen((v) => !v)}
             aria-label={isOpen ? "Close menu" : "Open menu"}
             aria-expanded={isOpen}
@@ -70,7 +71,7 @@ export function Navigation() {
         </div>
 
         <div
-          className={`lg:hidden overflow-hidden transition-all duration-200 ${
+          className={`xl:hidden overflow-hidden transition-all duration-200 ${
             isOpen ? "max-h-[560px] opacity-100 visible" : "max-h-0 opacity-0 invisible"
           }`}
         >
