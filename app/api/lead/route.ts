@@ -63,6 +63,8 @@ function confirmationEmail(d: Submission, outcome: Outcome) {
   }
 }
 
+const FALLBACK_FROM = "onboarding@resend.dev"
+
 const sendFail = () =>
   NextResponse.json(
     { ok: false, error: `We couldn't send your request right now. Please email us at ${SITE.email}.` },
@@ -92,7 +94,7 @@ export async function POST(req: Request) {
 
   const apiKey = process.env.RESEND_API_KEY
   const recipients = process.env.LEAD_TO_EMAIL?.split(",").map((e) => e.trim()).filter(Boolean) ?? []
-  const from = (process.env.LEAD_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev").trim()
+  const from = (process.env.LEAD_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || FALLBACK_FROM).trim()
 
   if (!apiKey || recipients.length === 0) {
     console.error("[lead] missing RESEND_API_KEY or LEAD_TO_EMAIL", { hasKey: Boolean(apiKey), recipientCount: recipients.length })
@@ -103,20 +105,32 @@ export async function POST(req: Request) {
   }
 
   const resend = new Resend(apiKey)
-  try {
-    const { error } = await resend.emails.send({ from, to: recipients, replyTo: data.email, ...leadEmail(data, outcome) })
-    if (error) {
-      console.error("[lead] resend error", { message: error.message })
-      return sendFail()
+  const lead = leadEmail(data, outcome)
+
+  // Try the configured sender first, then Resend's built-in sender (works if the custom domain lapses).
+  const senders = from === FALLBACK_FROM ? [from] : [from, FALLBACK_FROM]
+  let sentFrom: string | null = null
+  for (const sender of senders) {
+    try {
+      const { error } = await resend.emails.send({ from: sender, to: recipients, replyTo: data.email, ...lead })
+      if (!error) {
+        sentFrom = sender
+        break
+      }
+      console.error("[lead] resend error", { sender, message: error.message })
+    } catch (err) {
+      console.error("[lead] send threw", { sender, err })
     }
-  } catch (err) {
-    console.error("[lead] send threw", err)
+  }
+  if (!sentFrom) {
+    // Keep the lead recoverable from Vercel logs even when email is down.
+    console.error("[lead] UNSENT LEAD", JSON.stringify({ outcome, role: data.role, name: data.name, phone: data.phone, email: data.email, answers: data.answers }))
     return sendFail()
   }
 
   // Confirmation to the person. Best-effort: the lead is already delivered if this fails.
   try {
-    const { error } = await resend.emails.send({ from, to: [data.email], replyTo: SITE.email, ...confirmationEmail(data, outcome) })
+    const { error } = await resend.emails.send({ from: sentFrom, to: [data.email], replyTo: SITE.email, ...confirmationEmail(data, outcome) })
     if (error) console.warn("[lead] confirmation email not sent", { message: error.message })
   } catch (err) {
     console.warn("[lead] confirmation email threw", err)

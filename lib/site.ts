@@ -6,7 +6,7 @@
 export const SITE = {
   name: "MHE Gardens",
   tagline: "Land and homes in Upstate New York — the regular way or the auction way.",
-  url: "https://www.mhegardens.com",
+  url: "https://mhegardens.vercel.app",
   email: "mhegardens518@gmail.com",
   region: "Upstate New York",
 

@@ -1,4 +1,4 @@
-# MHE Gardens — mhegardens.com
+# MHE Gardens — mhegardens.vercel.app
 
 Land and home buying site for Upstate New York: ways to buy (mortgage, first-time buyer and down payment matching programs, county tax auctions, land bank, fix and flip), help for sellers and investors, credit help, guides, and a free-consultation form.
 
