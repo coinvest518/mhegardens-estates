@@ -4,7 +4,7 @@ import { getSupabase } from "@/lib/supabase-server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
-export const maxDuration = 30
+export const maxDuration = 60
 
 const MessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
@@ -25,7 +25,7 @@ const PROVIDERS = [
     name: "mistral",
     key: () => process.env.MISTRAL_API_KEY,
     url: "https://api.mistral.ai/v1/chat/completions",
-    models: () => [process.env.MISTRAL_CHAT_MODEL, "mistral-small-latest"],
+    models: () => [process.env.MISTRAL_CHAT_MODEL, "mistral-small-latest", "ministral-8b-latest", "open-mistral-nemo"],
   },
   {
     name: "nvidia",
@@ -33,15 +33,17 @@ const PROVIDERS = [
     url: "https://integrate.api.nvidia.com/v1/chat/completions",
     models: () => [
       process.env.NVIDIA_CHAT_MODEL,
-      "mistralai/mistral-large-2-instruct",
+      "deepseek-ai/deepseek-v4.1-flash",
+      "google/gemma-3-12b-it",
+      "nvidia/nemotron-3.5-lightning-30b-a3b",
       "google/gemma-4-31b-it",
-      "nvidia/llama-3.1-nemotron-70b-instruct",
     ],
   },
 ]
 
-/** Statuses that mean "this model is gone or wrong" — try the provider's next model. */
-const MODEL_GONE = new Set([400, 404, 410, 422])
+/** Wait up to this long for a model to start answering, and this long in total across all tries. */
+const FIRST_TOKEN_MS = 9000
+const TOTAL_BUDGET_MS = 24000
 
 // Best-effort per-instance rate limit: 20 messages per 10 minutes per visitor.
 const WINDOW_MS = 10 * 60 * 1000
@@ -78,19 +80,22 @@ export async function POST(req: Request) {
 
   let upstream: Response | null = null
   let used = ""
+  const deadline = Date.now() + TOTAL_BUDGET_MS
   providers: for (const p of PROVIDERS) {
     const key = p.key()
     if (!key) continue
     const models = [...new Set(p.models().filter((m): m is string => !!m))]
     for (const model of models) {
-      // Give up on a provider that hasn't started answering in 15s, but never cut off an answer mid-stream.
+      const left = deadline - Date.now()
+      if (left < 2000) break providers
+      // Give up on a model that hasn't started answering in time, but never cut off an answer mid-stream.
       const ctrl = new AbortController()
-      const timer = setTimeout(() => ctrl.abort(), 15000)
+      const timer = setTimeout(() => ctrl.abort(), Math.min(FIRST_TOKEN_MS, left))
       try {
         const res = await fetch(p.url, {
           method: "POST",
           headers: { "content-type": "application/json", authorization: `Bearer ${key}`, accept: "text/event-stream" },
-          body: JSON.stringify({ model, messages: payload, stream: true, temperature: 0.3, max_tokens: 500 }),
+          body: JSON.stringify({ model, messages: payload, stream: true, temperature: 0.3, max_tokens: 600 }),
           signal: ctrl.signal,
         })
         clearTimeout(timer)
@@ -99,13 +104,14 @@ export async function POST(req: Request) {
           used = `${p.name}:${model}`
           break providers
         }
-        console.error("[chat] provider failed", { provider: p.name, model, status: res.status, body: (await res.text()).slice(0, 300) })
-        // Rate limit, bad key or outage: this provider won't work with any model right now.
-        if (!MODEL_GONE.has(res.status)) continue providers
+        console.error("[chat] model failed", { provider: p.name, model, status: res.status, body: (await res.text()).slice(0, 300) })
+        // A bad or missing key fails every model the same way; anything else (retired, busy, rate-limited) may be per-model.
+        if (res.status === 401 || res.status === 403) continue providers
       } catch (err) {
         clearTimeout(timer)
-        console.error("[chat] provider threw", { provider: p.name, model, err: String(err) })
-        continue providers
+        const timedOut = ctrl.signal.aborted
+        console.error("[chat] model " + (timedOut ? "timed out" : "threw"), { provider: p.name, model, err: String(err) })
+        if (!timedOut) continue providers
       }
     }
   }
@@ -115,12 +121,23 @@ export async function POST(req: Request) {
   const decoder = new TextDecoder()
   const encoder = new TextEncoder()
   let buffer = ""
+  let raw = ""
   let answer = ""
+  const EMPTY = "I couldn't put an answer together just now. Try asking another way, or tap “See if you qualify” and we'll go over it on your free call."
+  // Some models stream their reasoning inside <think>…</think>; only the answer after it is shown.
+  const visible = (text: string) => {
+    if ("<think>".startsWith(text.trimStart()) && text.trim().length < 7) return ""
+    return text.replace(/<think>[\s\S]*?(?:<\/think>|$)/g, "").trimStart()
+  }
 
   const stream = new ReadableStream<Uint8Array>({
     async pull(controller) {
       const { done, value } = await reader.read()
       if (done) {
+        if (!answer.trim()) {
+          answer = EMPTY
+          controller.enqueue(encoder.encode(EMPTY))
+        }
         controller.close()
         void saveChat(sessionId, messages[messages.length - 1].content, answer, used)
         return
@@ -136,8 +153,12 @@ export async function POST(req: Request) {
         try {
           const delta = JSON.parse(body)?.choices?.[0]?.delta?.content
           if (typeof delta === "string" && delta) {
-            answer += delta
-            controller.enqueue(encoder.encode(delta))
+            raw += delta
+            const shown = visible(raw)
+            if (shown.length > answer.length && shown.startsWith(answer)) {
+              controller.enqueue(encoder.encode(shown.slice(answer.length)))
+              answer = shown
+            }
           }
         } catch {
           // ignore keep-alive or partial lines
