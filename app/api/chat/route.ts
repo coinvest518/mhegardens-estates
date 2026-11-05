@@ -20,19 +20,20 @@ const NVIDIA = { name: "nvidia", url: "https://integrate.api.nvidia.com/v1/chat/
 
 /**
  * OpenAI-compatible chat models, tried in order until one starts answering. Each provider needs its key in Vercel.
- * Stronger models first. Rate limits, plan limits (403) and retirements are per model, so a failure just moves on
- * to the next one; only a rejected key (401) skips the rest of that provider. NVIDIA is slower to start, so it's last. MISTRAL_CHAT_MODEL / NVIDIA_CHAT_MODEL put a model at the front.
+ * NVIDIA's Gemma 4 leads: in testing it started answering in under a second and handles Kreyòl well.
+ * Rate limits, plan limits (403) and retirements are per model, so a failure just moves on to the next one;
+ * only a rejected key (401) skips the rest of that provider. NVIDIA_CHAT_MODEL / MISTRAL_CHAT_MODEL put a model first.
+ * Avoid "thinking" models here: they can spend the whole answer budget reasoning and send no reply.
  */
 const MODELS = () =>
   [
-    { ...MISTRAL, model: process.env.MISTRAL_CHAT_MODEL },
     { ...NVIDIA, model: process.env.NVIDIA_CHAT_MODEL },
+    { ...NVIDIA, model: "google/gemma-4-31b-it" },
+    { ...MISTRAL, model: process.env.MISTRAL_CHAT_MODEL },
     { ...MISTRAL, model: "mistral-small-latest" },
     { ...MISTRAL, model: "mistral-medium-latest" },
     { ...MISTRAL, model: "open-mistral-nemo" },
     { ...MISTRAL, model: "ministral-8b-latest" },
-    { ...NVIDIA, model: "deepseek-ai/deepseek-v4.1-flash" },
-    { ...NVIDIA, model: "nvidia/nemotron-3.5-lightning-30b-a3b" },
   ].filter((m): m is typeof m & { model: string } => !!m.model)
 
 /** Cut an answer that starts repeating the same short phrase over and over. */
