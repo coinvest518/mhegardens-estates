@@ -15,31 +15,32 @@ const BodySchema = z.object({
   sessionId: z.string().max(64).optional(),
 })
 
+const MISTRAL = { name: "mistral", url: "https://api.mistral.ai/v1/chat/completions", key: () => process.env.MISTRAL_API_KEY }
+const NVIDIA = { name: "nvidia", url: "https://integrate.api.nvidia.com/v1/chat/completions", key: () => process.env.NVIDIA_API_KEY }
+
 /**
- * OpenAI-compatible chat providers, tried in order. Each needs its key set in Vercel.
- * Each provider lists models to try, so a retired model (404/410) falls through to the next one.
- * Set MISTRAL_CHAT_MODEL / NVIDIA_CHAT_MODEL in Vercel to put a different model first.
+ * OpenAI-compatible chat models, tried in order until one starts answering. Each provider needs its key in Vercel.
+ * Stronger models first; the small ministral model is the last resort. Rate limits and retirements are per model,
+ * so a failure just moves on to the next one. MISTRAL_CHAT_MODEL / NVIDIA_CHAT_MODEL put a model at the front.
  */
-const PROVIDERS = [
-  {
-    name: "mistral",
-    key: () => process.env.MISTRAL_API_KEY,
-    url: "https://api.mistral.ai/v1/chat/completions",
-    models: () => [process.env.MISTRAL_CHAT_MODEL, "mistral-small-latest", "ministral-8b-latest", "open-mistral-nemo"],
-  },
-  {
-    name: "nvidia",
-    key: () => process.env.NVIDIA_API_KEY,
-    url: "https://integrate.api.nvidia.com/v1/chat/completions",
-    models: () => [
-      process.env.NVIDIA_CHAT_MODEL,
-      "deepseek-ai/deepseek-v4.1-flash",
-      "google/gemma-3-12b-it",
-      "nvidia/nemotron-3.5-lightning-30b-a3b",
-      "google/gemma-4-31b-it",
-    ],
-  },
-]
+const MODELS = () =>
+  [
+    { ...MISTRAL, model: process.env.MISTRAL_CHAT_MODEL },
+    { ...NVIDIA, model: process.env.NVIDIA_CHAT_MODEL },
+    { ...MISTRAL, model: "mistral-small-latest" },
+    { ...MISTRAL, model: "mistral-medium-latest" },
+    { ...MISTRAL, model: "mistral-large-latest" },
+    { ...NVIDIA, model: "deepseek-ai/deepseek-v4.1-flash" },
+    { ...NVIDIA, model: "google/gemma-3-12b-it" },
+    { ...MISTRAL, model: "open-mistral-nemo" },
+    { ...MISTRAL, model: "ministral-8b-latest" },
+  ].filter((m): m is typeof m & { model: string } => !!m.model)
+
+/** Cut an answer that starts repeating the same short phrase over and over. */
+function stopLoop(text: string): string | null {
+  const m = text.slice(-240).match(/([\s\S]{2,30}?)\1{5,}$/)
+  return m ? text.slice(0, text.length - m[0].length + m[1].length).trimEnd() + " …" : null
+}
 
 /** Wait up to this long for a model to start answering, and this long in total across all tries. */
 const FIRST_TOKEN_MS = 9000
@@ -81,38 +82,35 @@ export async function POST(req: Request) {
   let upstream: Response | null = null
   let used = ""
   const deadline = Date.now() + TOTAL_BUDGET_MS
-  providers: for (const p of PROVIDERS) {
+  const deadBadKey = new Set<string>()
+  for (const p of MODELS()) {
     const key = p.key()
-    if (!key) continue
-    const models = [...new Set(p.models().filter((m): m is string => !!m))]
-    for (const model of models) {
-      const left = deadline - Date.now()
-      if (left < 2000) break providers
-      // Give up on a model that hasn't started answering in time, but never cut off an answer mid-stream.
-      const ctrl = new AbortController()
-      const timer = setTimeout(() => ctrl.abort(), Math.min(FIRST_TOKEN_MS, left))
-      try {
-        const res = await fetch(p.url, {
-          method: "POST",
-          headers: { "content-type": "application/json", authorization: `Bearer ${key}`, accept: "text/event-stream" },
-          body: JSON.stringify({ model, messages: payload, stream: true, temperature: 0.3, max_tokens: 600 }),
-          signal: ctrl.signal,
-        })
-        clearTimeout(timer)
-        if (res.ok && res.body) {
-          upstream = res
-          used = `${p.name}:${model}`
-          break providers
-        }
-        console.error("[chat] model failed", { provider: p.name, model, status: res.status, body: (await res.text()).slice(0, 300) })
-        // A bad or missing key fails every model the same way; anything else (retired, busy, rate-limited) may be per-model.
-        if (res.status === 401 || res.status === 403) continue providers
-      } catch (err) {
-        clearTimeout(timer)
-        const timedOut = ctrl.signal.aborted
-        console.error("[chat] model " + (timedOut ? "timed out" : "threw"), { provider: p.name, model, err: String(err) })
-        if (!timedOut) continue providers
+    if (!key || deadBadKey.has(p.name)) continue
+    const model = p.model
+    const left = deadline - Date.now()
+    if (left < 2000) break
+    // Give up on a model that hasn't started answering in time, but never cut off an answer mid-stream.
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), Math.min(FIRST_TOKEN_MS, left))
+    try {
+      const res = await fetch(p.url, {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: `Bearer ${key}`, accept: "text/event-stream" },
+        body: JSON.stringify({ model, messages: payload, stream: true, temperature: 0.3, max_tokens: 600 }),
+        signal: ctrl.signal,
+      })
+      clearTimeout(timer)
+      if (res.ok && res.body) {
+        upstream = res
+        used = `${p.name}:${model}`
+        break
       }
+      console.error("[chat] model failed", { provider: p.name, model, status: res.status, body: (await res.text()).slice(0, 300) })
+      // A bad or missing key fails every model on that provider the same way.
+      if (res.status === 401 || res.status === 403) deadBadKey.add(p.name)
+    } catch (err) {
+      clearTimeout(timer)
+      console.error("[chat] model " + (ctrl.signal.aborted ? "timed out" : "threw"), { provider: p.name, model, err: String(err) })
     }
   }
   if (!upstream?.body) return json(503, "The guide is offline right now. Tap “See if you qualify” and we'll answer on your free call.")
@@ -160,6 +158,16 @@ export async function POST(req: Request) {
               raw += delta
               const shown = visible(raw)
               if (shown.length > answer.length && shown.startsWith(answer)) {
+                const looped = stopLoop(shown)
+                if (looped !== null) {
+                  // Replace nothing already sent; just end the answer here.
+                  controller.enqueue(encoder.encode(" …"))
+                  answer = looped
+                  controller.close()
+                  void reader.cancel()
+                  void saveChat(sessionId, messages[messages.length - 1].content, answer, used)
+                  return
+                }
                 controller.enqueue(encoder.encode(shown.slice(answer.length)))
                 answer = shown
                 sent = true
