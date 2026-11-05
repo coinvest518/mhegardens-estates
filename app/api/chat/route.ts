@@ -15,21 +15,33 @@ const BodySchema = z.object({
   sessionId: z.string().max(64).optional(),
 })
 
-/** OpenAI-compatible chat providers, tried in order. Each needs its key set in Vercel. */
+/**
+ * OpenAI-compatible chat providers, tried in order. Each needs its key set in Vercel.
+ * Each provider lists models to try, so a retired model (404/410) falls through to the next one.
+ * Set MISTRAL_CHAT_MODEL / NVIDIA_CHAT_MODEL in Vercel to put a different model first.
+ */
 const PROVIDERS = [
   {
     name: "mistral",
     key: () => process.env.MISTRAL_API_KEY,
     url: "https://api.mistral.ai/v1/chat/completions",
-    model: () => process.env.MISTRAL_CHAT_MODEL || "mistral-small-latest",
+    models: () => [process.env.MISTRAL_CHAT_MODEL, "mistral-small-latest"],
   },
   {
     name: "nvidia",
     key: () => process.env.NVIDIA_API_KEY,
     url: "https://integrate.api.nvidia.com/v1/chat/completions",
-    model: () => process.env.NVIDIA_CHAT_MODEL || "meta/llama-3.3-70b-instruct",
+    models: () => [
+      process.env.NVIDIA_CHAT_MODEL,
+      "mistralai/mistral-large-2-instruct",
+      "google/gemma-4-31b-it",
+      "nvidia/llama-3.1-nemotron-70b-instruct",
+    ],
   },
 ]
+
+/** Statuses that mean "this model is gone or wrong" — try the provider's next model. */
+const MODEL_GONE = new Set([400, 404, 410, 422])
 
 // Best-effort per-instance rate limit: 20 messages per 10 minutes per visitor.
 const WINDOW_MS = 10 * 60 * 1000
@@ -66,23 +78,35 @@ export async function POST(req: Request) {
 
   let upstream: Response | null = null
   let used = ""
-  for (const p of PROVIDERS) {
+  providers: for (const p of PROVIDERS) {
     const key = p.key()
     if (!key) continue
-    try {
-      const res = await fetch(p.url, {
-        method: "POST",
-        headers: { "content-type": "application/json", authorization: `Bearer ${key}`, accept: "text/event-stream" },
-        body: JSON.stringify({ model: p.model(), messages: payload, stream: true, temperature: 0.3, max_tokens: 500 }),
-      })
-      if (res.ok && res.body) {
-        upstream = res
-        used = p.name
-        break
+    const models = [...new Set(p.models().filter((m): m is string => !!m))]
+    for (const model of models) {
+      // Give up on a provider that hasn't started answering in 15s, but never cut off an answer mid-stream.
+      const ctrl = new AbortController()
+      const timer = setTimeout(() => ctrl.abort(), 15000)
+      try {
+        const res = await fetch(p.url, {
+          method: "POST",
+          headers: { "content-type": "application/json", authorization: `Bearer ${key}`, accept: "text/event-stream" },
+          body: JSON.stringify({ model, messages: payload, stream: true, temperature: 0.3, max_tokens: 500 }),
+          signal: ctrl.signal,
+        })
+        clearTimeout(timer)
+        if (res.ok && res.body) {
+          upstream = res
+          used = `${p.name}:${model}`
+          break providers
+        }
+        console.error("[chat] provider failed", { provider: p.name, model, status: res.status, body: (await res.text()).slice(0, 300) })
+        // Rate limit, bad key or outage: this provider won't work with any model right now.
+        if (!MODEL_GONE.has(res.status)) continue providers
+      } catch (err) {
+        clearTimeout(timer)
+        console.error("[chat] provider threw", { provider: p.name, model, err: String(err) })
+        continue providers
       }
-      console.error("[chat] provider failed", { provider: p.name, status: res.status, body: (await res.text()).slice(0, 300) })
-    } catch (err) {
-      console.error("[chat] provider threw", { provider: p.name, err })
     }
   }
   if (!upstream?.body) return json(503, "The guide is offline right now. Tap “See if you qualify” and we'll answer on your free call.")
