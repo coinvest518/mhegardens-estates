@@ -131,38 +131,45 @@ export async function POST(req: Request) {
   }
 
   const stream = new ReadableStream<Uint8Array>({
+    // Keep reading until there is visible text to send or the answer ends. Returning from pull()
+    // without enqueueing would leave the reader waiting forever (e.g. on the opening role-only chunk).
     async pull(controller) {
-      const { done, value } = await reader.read()
-      if (done) {
-        if (!answer.trim()) {
-          answer = EMPTY
-          controller.enqueue(encoder.encode(EMPTY))
-        }
-        controller.close()
-        void saveChat(sessionId, messages[messages.length - 1].content, answer, used)
-        return
-      }
-      buffer += decoder.decode(value, { stream: true })
-      const lines = buffer.split("\n")
-      buffer = lines.pop() ?? ""
-      for (const line of lines) {
-        const data = line.trim()
-        if (!data.startsWith("data:")) continue
-        const body = data.slice(5).trim()
-        if (body === "[DONE]") continue
-        try {
-          const delta = JSON.parse(body)?.choices?.[0]?.delta?.content
-          if (typeof delta === "string" && delta) {
-            raw += delta
-            const shown = visible(raw)
-            if (shown.length > answer.length && shown.startsWith(answer)) {
-              controller.enqueue(encoder.encode(shown.slice(answer.length)))
-              answer = shown
-            }
+      for (;;) {
+        const { done, value } = await reader.read()
+        if (done) {
+          if (!answer.trim()) {
+            answer = EMPTY
+            controller.enqueue(encoder.encode(EMPTY))
           }
-        } catch {
-          // ignore keep-alive or partial lines
+          controller.close()
+          void saveChat(sessionId, messages[messages.length - 1].content, answer, used)
+          return
         }
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split("\n")
+        buffer = lines.pop() ?? ""
+        let sent = false
+        for (const line of lines) {
+          const data = line.trim()
+          if (!data.startsWith("data:")) continue
+          const body = data.slice(5).trim()
+          if (body === "[DONE]") continue
+          try {
+            const delta = JSON.parse(body)?.choices?.[0]?.delta?.content
+            if (typeof delta === "string" && delta) {
+              raw += delta
+              const shown = visible(raw)
+              if (shown.length > answer.length && shown.startsWith(answer)) {
+                controller.enqueue(encoder.encode(shown.slice(answer.length)))
+                answer = shown
+                sent = true
+              }
+            }
+          } catch {
+            // ignore keep-alive or partial lines
+          }
+        }
+        if (sent) return
       }
     },
     cancel() {
