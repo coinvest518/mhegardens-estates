@@ -40,6 +40,11 @@ export function SiteFooter() {
                   Ebook bundle (${BUNDLE.priceUSD})
                 </a>
               </li>
+              <li>
+                <a href={SITE.community.url} target="_blank" rel="noreferrer noopener" className="hover:text-white hover:underline underline-offset-4 decoration-goldenrod">
+                  Community
+                </a>
+              </li>
             </ul>
           </nav>
 

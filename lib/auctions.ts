@@ -1,25 +1,7 @@
-export interface AuctionEvent {
-  id: string
-  title: string
-  county: string
-  eventType: string
-  openDate: string
-  closeDate: string
-  registrationDue: string
-  auctionUrl?: string
-  registrationUrl: string
-  promoCode?: string
-  packetEsignUrl?: string
-  packetDownloadUrl?: string
-  absenteeUrl?: string
-  propertyListUrl?: string
-  termsUrl?: string
-  catalogUrl?: string
-  leadPaintUrl?: string
-  fairHousingUrl?: string
-  faqUrl?: string
-  notes?: string
-}
+import "server-only"
+import type { AuctionEvent } from "@/lib/auction-types"
+
+export type { AuctionEvent }
 
 export const AUCTION_EVENTS: AuctionEvent[] = [
   {
@@ -184,19 +166,49 @@ export const AUCTION_EVENTS: AuctionEvent[] = [
     notes: "Tentative dates — confirm with Auctions International before bidding.",
   },
   {
-    id: "albany-fall-2026-10-28",
+    id: "lockport-2026-11-10",
+    title: "City of Lockport Tax Foreclosed Real Estate Auction",
+    county: "City of Lockport",
+    eventType: "Online only",
+    openDate: "October 27, 2026 12:00 PM",
+    closeDate: "November 10, 2026 10:00 AM",
+    registrationDue: "November 6, 2026 4:00 PM",
+    auctionUrl: "https://www.LockportAuction.com",
+    registrationUrl: "https://www.auctionsinternational.com/register/",
+    promoCode: "LOCKPORT26",
+    absenteeUrl: "tel:18005361401;ext=111",
+    notes: "18 properties, 12.77% buyer's premium. The printable registration packet needs a notary.",
+  },
+  {
+    id: "cortland-2026-11-17",
+    title: "Cortland County Real Estate Auction: 49 Grant St",
+    county: "Cortland County",
+    eventType: "Online only",
+    openDate: "October 27, 2026 12:00 PM",
+    closeDate: "November 17, 2026 10:00 AM",
+    registrationDue: "November 13, 2026 4:00 PM",
+    auctionUrl: "https://www.49GrantSt.com",
+    registrationUrl: "https://www.auctionsinternational.com/register/",
+    promoCode: "49GRANT",
+    absenteeUrl: "tel:18005361401;ext=111",
+    notes: "One property, 49 Grant St in the City of Cortland, with a 10% buyer's premium. The printable packet needs a notary.",
+  },
+  {
+    id: "albany-fall-2026-12-02",
     title: "Albany County Fall Tax Foreclosed Real Estate Auction",
     county: "Albany County",
     eventType: "Online only",
-    openDate: "October 14, 2026 12:00 PM",
-    closeDate: "October 28, 2026 10:00 AM",
-    registrationDue: "October 26, 2026 4:00 PM",
+    openDate: "November 18, 2026 12:00 PM",
+    closeDate: "December 2, 2026 10:00 AM",
+    registrationDue: "November 30, 2026 4:00 PM",
+    auctionUrl: "https://www.AlbanyCoAuction.com",
     registrationUrl: "https://www.auctionsinternational.com/register/",
     promoCode: "ALBANY26",
     absenteeUrl: "tel:18005361401;ext=111",
     leadPaintUrl: "https://auctionftp2.com/index.php/s/7DszxwrsK2GW2qC",
     fairHousingUrl: "https://auctionftp2.com/index.php/s/7DszxwrsK2GW2qC",
     faqUrl: "https://auctionftp2.com/index.php/s/9Ji6TTyaJ9tfwfW",
+    notes: "The registration packets and catalog are coming soon. The printable packet needs a notary.",
   },
   {
     id: "north-tonawanda-2026-12-16",
@@ -215,3 +227,10 @@ export const AUCTION_EVENTS: AuctionEvent[] = [
     notes: "Auction link coming soon.",
   },
 ]
+/** Auctions that haven't closed yet, soonest-closing first. */
+export function getUpcomingAuctions(now = Date.now()): AuctionEvent[] {
+  return AUCTION_EVENTS.filter((e) => {
+    const closes = new Date(e.closeDate).getTime()
+    return Number.isNaN(closes) || closes >= now
+  }).sort((a, b) => new Date(a.closeDate).getTime() - new Date(b.closeDate).getTime())
+}

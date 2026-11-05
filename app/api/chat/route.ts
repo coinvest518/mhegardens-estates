@@ -62,7 +62,11 @@ function rateLimited(ip: string): boolean {
 const json = (status: number, error: string) =>
   new Response(JSON.stringify({ error }), { status, headers: { "content-type": "application/json" } })
 
+/** Stop streaming a little before the 60-second function limit so an answer ends cleanly instead of being cut off. */
+const STREAM_BUDGET_MS = 52000
+
 export async function POST(req: Request) {
+  const started = Date.now()
   const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || "unknown"
   if (rateLimited(ip)) return json(429, "You're sending messages quickly. Wait a few minutes and try again.")
 
@@ -96,7 +100,7 @@ export async function POST(req: Request) {
       const res = await fetch(p.url, {
         method: "POST",
         headers: { "content-type": "application/json", authorization: `Bearer ${key}`, accept: "text/event-stream" },
-        body: JSON.stringify({ model, messages: payload, stream: true, temperature: 0.3, max_tokens: 600 }),
+        body: JSON.stringify({ model, messages: payload, stream: true, temperature: 0.3, max_tokens: 400 }),
         signal: ctrl.signal,
       })
       clearTimeout(timer)
@@ -177,7 +181,15 @@ export async function POST(req: Request) {
             // ignore keep-alive or partial lines
           }
         }
-        if (sent) return
+        if (sent) {
+          if (Date.now() - started > STREAM_BUDGET_MS) {
+            controller.enqueue(encoder.encode(" …"))
+            controller.close()
+            void reader.cancel()
+            void saveChat(sessionId, messages[messages.length - 1].content, answer, used)
+          }
+          return
+        }
       }
     },
     cancel() {

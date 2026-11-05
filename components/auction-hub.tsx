@@ -3,7 +3,8 @@ import { ArrowRight, CalendarDays, ExternalLink, Gavel, ShieldCheck } from "luci
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import type { AuctionEvent } from "@/lib/auctions"
+import { AuctionEventCard } from "@/components/auction-event-card"
+import type { AuctionEvent } from "@/lib/auction-types"
 import { SITE } from "@/lib/site"
 
 const BASICS = [
@@ -32,7 +33,18 @@ const STEPS = [
   "Bid online, and have your deposit and payment ready if you win.",
 ]
 
-export function AuctionHub({ upcoming, landBank }: { upcoming: AuctionEvent[]; landBank?: React.ReactNode }) {
+export function AuctionHub({
+  featured,
+  upcomingCount,
+  landBank,
+  members,
+}: {
+  featured: AuctionEvent | null
+  upcomingCount: number
+  landBank?: React.ReactNode
+  /** The rest of the auctions, locked until sign-in. */
+  members?: React.ReactNode
+}) {
   return (
     <section className="pt-28 pb-24 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
@@ -62,7 +74,7 @@ export function AuctionHub({ upcoming, landBank }: { upcoming: AuctionEvent[]; l
             </a>
           </div>
 
-          {upcoming.length === 0 ? (
+          {upcomingCount === 0 ? (
             <Card className="border-dashed border-border bg-card">
               <CardContent className="py-10 text-center space-y-3">
                 <CalendarDays className="h-8 w-8 text-primary mx-auto" />
@@ -78,52 +90,13 @@ export function AuctionHub({ upcoming, landBank }: { upcoming: AuctionEvent[]; l
             </Card>
           ) : (
             <div className="grid gap-5">
-              {upcoming.map((event) => (
-                <Card key={event.id} className="border-border bg-card">
-                  <CardHeader className="pb-3">
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-semibold text-leaf">{event.county}</p>
-                        <CardTitle className="text-xl mt-1.5">{event.title}</CardTitle>
-                      </div>
-                      <Badge className="bg-primary/10 text-primary border border-primary/20 self-start">{event.eventType}</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="grid md:grid-cols-3 gap-5 text-sm">
-                    <div className="space-y-1.5 text-muted-foreground">
-                      <p><span className="font-semibold text-foreground">Opens:</span> {event.openDate}</p>
-                      <p><span className="font-semibold text-foreground">Closes:</span> {event.closeDate}</p>
-                      <p><span className="font-semibold text-foreground">Register by:</span> {event.registrationDue}</p>
-                    </div>
-                    <div className="space-y-1.5">
-                      <a href={event.registrationUrl} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 font-semibold text-primary">
-                        Create a bidder account <ArrowRight className="h-4 w-4" />
-                      </a>
-                      {event.promoCode && <p className="text-muted-foreground">Promo code: {event.promoCode}</p>}
-                      {event.packetEsignUrl && (
-                        <a href={event.packetEsignUrl} target="_blank" rel="noreferrer noopener" className="flex items-center gap-1.5 font-semibold text-primary">
-                          Request the e-sign packet <ArrowRight className="h-4 w-4" />
-                        </a>
-                      )}
-                      {event.packetDownloadUrl && (
-                        <a href={event.packetDownloadUrl} target="_blank" rel="noreferrer noopener" className="flex items-center gap-1.5 font-semibold text-primary">
-                          Download the printable packet <ArrowRight className="h-4 w-4" />
-                        </a>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      {event.auctionUrl && (
-                        <Button asChild variant="outline" size="sm" className="border-primary text-primary hover:bg-primary/10 w-full sm:w-auto">
-                          <a href={event.auctionUrl} target="_blank" rel="noreferrer noopener">See the properties</a>
-                        </Button>
-                      )}
-                      <p className="text-xs text-muted-foreground text-pretty">
-                        {event.notes ? `${event.notes} ` : ""}Dates can change — confirm on Auctions International before registering.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+              {featured && (
+                <div data-testid="auction-featured">
+                  <p className="mb-2 text-sm font-semibold text-ink">Closing next</p>
+                  <AuctionEventCard event={featured} />
+                </div>
+              )}
+              {members}
             </div>
           )}
         </div>

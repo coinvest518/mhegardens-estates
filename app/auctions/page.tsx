@@ -3,7 +3,9 @@ import Link from "next/link"
 import { Navigation } from "@/components/navigation"
 import { SiteFooter } from "@/components/site-footer"
 import { AuctionHub } from "@/components/auction-hub"
-import { AUCTION_EVENTS } from "@/lib/auctions"
+import { AuctionMembers } from "@/components/auction-members"
+import { getUpcomingAuctions } from "@/lib/auctions"
+import { SOURCES } from "@/lib/sources"
 import { formatDeadline, landBankDeadline } from "@/lib/land-bank"
 import { getLandBankList, splitForVisitors, summarize } from "@/lib/land-bank-listings"
 import { SITE } from "@/lib/site"
@@ -85,17 +87,21 @@ async function LandBankFeature() {
 }
 
 export default function AuctionsPage() {
-  const now = Date.now()
-  const upcoming = AUCTION_EVENTS.filter((e) => {
-    const closes = new Date(e.closeDate).getTime()
-    return Number.isNaN(closes) || closes >= now
-  }).sort((a, b) => new Date(a.openDate).getTime() - new Date(b.openDate).getTime())
+  const upcoming = getUpcomingAuctions()
+  const [featured = null, ...rest] = upcoming
+  // Only which auction and when goes to the browser for the locked ones.
+  const teasers = rest.map(({ id, title, county, eventType, openDate, closeDate }) => ({ id, title, county, eventType, openDate, closeDate }))
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="relative">
-        <AuctionHub upcoming={upcoming} landBank={<LandBankFeature />} />
+        <AuctionHub
+          featured={featured}
+          upcomingCount={upcoming.length}
+          landBank={<LandBankFeature />}
+          members={<AuctionMembers teasers={teasers} sourceCount={SOURCES.length} />}
+        />
       </main>
       <SiteFooter />
     </div>

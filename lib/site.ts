@@ -11,6 +11,8 @@ export const SITE = {
   region: "Upstate New York",
 
   /** cal.com 30-minute consultation link, shown on qualifier results. TODO: add it. */
+  /** Our community and memberships live on Buy Me a Coffee for now (Whop later). */
+  community: { name: "Streets 2 Entrepreneurs", url: "https://buymeacoffee.com/streets2entrepreneurs/membership" },
   consultBookingUrl: null as string | null,
 
   agent: {
